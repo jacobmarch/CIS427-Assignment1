@@ -35,7 +35,7 @@ class DatabaseManager:
                     rarity TEXT NOT NULL,
                     count INTEGER,
                     owner_id INTEGER,
-                    FOREIGN KEY (owner_id) REFERENCES Users ID
+                    FOREIGN KEY (owner_id) REFERENCES Users(ID)
                 )
             """)
             self.connection.commit()
@@ -102,6 +102,25 @@ class DatabaseManager:
         except sqlite3.Error as e:
             print(f"Error fetching balance: {e}")
             return None
+
+    def count_users(self):
+        try:
+            self.cursor.execute("SELECT COUNT(*) FROM Users")
+            count = self.cursor.fetchone()[0]
+            return count
+        except sqlite3.Error as e:
+            print(f"Error counting users: {e}")
+            return 0
+
+    def insert_default_user(self):
+        try:
+            self.cursor.execute("""
+                INSERT INTO Users (email, first_name, last_name, user_name, password, usd_balance)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, ('default@email.com', 'John', 'Doe', 'johndoe', 'password', 100.0))
+            self.connection.commit()
+        except sqlite3.Error as e:
+            print(f"Error inserting default user: {e}")
 
     def close(self):
         self.connection.close()

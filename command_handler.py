@@ -5,7 +5,10 @@ from constants import CMD_BUY, CMD_SELL, CMD_LIST, CMD_BALANCE, CMD_QUIT, CMD_SH
 class CommandHandler:
 
     def __init__(self):
-        self.db_manager = DatabaseManager()
+        self.db_manager = None
+
+    def set_db_manager(self, db_manager):
+        self.db_manager = db_manager
 
     def handle_buy(self, args):
         # Extract the necessary arguments

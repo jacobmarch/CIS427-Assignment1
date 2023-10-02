@@ -1,5 +1,6 @@
 import socket
-from constants import SERVER_PORT
+from constants import SERVER_PORT, CMD_QUIT, CMD_SHUTDOWN
+
 
 class Client:
 
@@ -20,18 +21,24 @@ class Client:
             command = input("Enter command (or 'exit' to disconnect): ")
 
             # Exit condition for interactive mode
-            if command.lower() == 'exit':
+            if command.upper() == CMD_QUIT:
                 print("Disconnecting from server...")
                 break
 
             # 2. Send the command to the server
             self.client_socket.sendall(command.encode('utf-8'))
 
-            # 3. Receive the response from the server
-            response = self.client_socket.recv(1024).decode('utf-8')
-
-            # 4. Display the server's response to the user
-            print("Server:", response)
+            # 3. Try to receive the response from the server
+            try:
+                response = self.client_socket.recv(1024).decode('utf-8')
+                # 4. Display the server's response to the user
+                print("Server:", response)
+                if response == "200 OK: Server shutting down...":
+                    print("Disconnecting from server...")
+                    break
+            except Exception as e:
+                print("Error receiving response from server:", e)
+                print("You can continue to input commands or exit.")
 
     def shutdown(self):
         self.client_socket.close()
