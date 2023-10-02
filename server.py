@@ -42,7 +42,7 @@ class Server:
                 client_thread.start()
             except OSError as e:
                 if not self.server_running:
-                    print("Server is shutting down.")
+                    print("Server offline.")
                 else:
                     print(f"Unexpected error occurred: {e}")
 
