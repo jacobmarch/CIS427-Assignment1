@@ -18,7 +18,8 @@ class Client:
     def interactive_mode(self):
         while True:
             # 1. Prompt the user for input
-            command = input("Enter command (or 'exit' to disconnect): ")
+            command = input("Enter command (or 'quit' to disconnect): ")
+            command = command.upper()
 
             # Exit condition for interactive mode
             if command.upper() == CMD_QUIT:
