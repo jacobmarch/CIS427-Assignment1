@@ -15,7 +15,8 @@ class Server:
         self.db_manager.create_users_table()
         self.db_manager.create_pokemon_table()
 
-    def setup_database(self):
+    @staticmethod
+    def setup_database():
         db_manager = DatabaseManager()
 
         db_manager.create_users_table()
