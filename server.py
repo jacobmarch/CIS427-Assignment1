@@ -3,40 +3,75 @@ import threading
 from command_handler import CommandHandler
 from constants import SERVER_PORT
 
+
 class Server:
 
     def __init__(self):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.command_handler = CommandHandler()
+        self.server_running = True  # Added to control server's main loop
+        self.active_clients = []  # To keep track of active client threads
 
     def start(self):
-        # Bind the socket to the port
         self.server_socket.bind(('0.0.0.0', SERVER_PORT))
-        self.server_socket.listen(5)  # Maximum of 5 pending connections
+        self.server_socket.listen(1)
         print(f"Server started and listening on port {SERVER_PORT}...")
 
-        while True:
+        while self.server_running:  # Change from while True to while self.server_running
             client_socket, client_address = self.server_socket.accept()
             print(f"Client {client_address} connected.")
 
-            # For each client, start a new thread to handle their requests
             client_thread = threading.Thread(target=self.handle_client, args=(client_socket,))
+            self.active_clients.append(client_thread)  # Add thread to active_clients list
             client_thread.start()
 
     def handle_client(self, client_socket):
-        # Handle client requests here
-        # This will involve reading data from the client, processing commands,
-        # and sending responses back using the command_handler.
-        pass
+        while True:
+            data = client_socket.recv(1024).decode('utf-8')
+            if not data:
+                break
 
-def shutdown(self):
-    self.server_socket.close()
-    # Add any other cleanup operations if needed
+            command, *args = data.split()
 
-    if __name__ == "__main__":
-        server = Server()
-        try:
-            server.start()
-        except KeyboardInterrupt:
-            print("\nShutting down the server...")
-            server.shutdown()
+            if command == "SHUTDOWN":
+                response = self.command_handler.handle_shutdown(args)
+                client_socket.send(response.encode('utf-8'))
+                self.server_running = False  # Signal the main loop to stop
+                for thread in self.active_clients:
+                    thread.join()  # Wait for all client threads to finish
+                self.shutdown()
+                break
+            elif command == "QUIT":
+                response = self.command_handler.handle_quit(args)
+                client_socket.send(response.encode('utf-8'))
+                client_socket.close()
+                break
+            elif command == "BUY":
+                response = self.command_handler.handle_buy(args)
+                client_socket.send(response.encode('utf-8'))
+            elif command == "SELL":
+                response = self.command_handler.handle_sell(args)
+                client_socket.send(response.encode('utf-8'))
+            elif command == "LIST":
+                response = self.command_handler.handle_list(args)
+                client_socket.send(response.encode('utf-8'))
+            elif command == "BALANCE":
+                response = self.command_handler.handle_balance(args)
+                client_socket.send(response.encode('utf-8'))
+            else:
+                # Unknown command handling
+                response = "Unknown command."
+                client_socket.send(response.encode('utf-8'))
+
+    def shutdown(self):
+        self.server_socket.close()
+        print("Server has been shut down.")
+
+
+if __name__ == "__main__":
+    server = Server()
+    try:
+        server.start()
+    except KeyboardInterrupt:
+        print("\nShutting down the server due to keyboard interrupt...")
+        server.shutdown()

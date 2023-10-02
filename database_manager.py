@@ -30,8 +30,8 @@ class DatabaseManager:
             self.cursor.execute("""
                 CREATE TABLE IF NOT EXISTS Pokemon_cards (
                     ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                    card_name TEXT NOT NULL,
                     card_type TEXT NOT NULL,
+                    card_name TEXT NOT NULL,
                     rarity TEXT NOT NULL,
                     count INTEGER,
                     owner_id INTEGER,
@@ -44,8 +44,64 @@ class DatabaseManager:
             print(f"Error creating Pokemon_cards table: {e}")
             return False
 
-
     #We need to add other table operations here
+
+    def buy_card(self, user_id, card_id, quantity, cost):
+        try:
+            # Decrease card count
+            self.cursor.execute("UPDATE Pokemon_cards SET count = count - ? WHERE ID = ?", (quantity, card_id))
+
+            # Decrease user balance
+            self.cursor.execute("UPDATE Users SET usd_balance = usd_balance - ? WHERE ID = ?", (cost, user_id))
+
+            # Assuming you'll have a mechanism to track which user has which cards, update that as well.
+            # This is a simple approach where we just update the owner_id of the card.
+            # A more scalable approach would involve a separate ownership table.
+            self.cursor.execute("UPDATE Pokemon_cards SET owner_id = ? WHERE ID = ?", (user_id, card_id))
+
+            self.connection.commit()
+            return True
+        except sqlite3.Error as e:
+            print(f"Error buying card: {e}")
+            return False
+
+    def sell_card(self, user_id, card_id, quantity, earnings):
+        try:
+            # Increase card count
+            self.cursor.execute("UPDATE Pokemon_cards SET count = count + ? WHERE ID = ?", (quantity, card_id))
+
+            # Increase user balance
+            self.cursor.execute("UPDATE Users SET usd_balance = usd_balance + ? WHERE ID = ?", (earnings, user_id))
+
+            # Update card ownership (using the simple approach mentioned above)
+            self.cursor.execute("UPDATE Pokemon_cards SET owner_id = NULL WHERE ID = ?", (card_id,))
+
+            self.connection.commit()
+            return True
+        except sqlite3.Error as e:
+            print(f"Error selling card: {e}")
+            return False
+
+    def list_cards(self, user_id=None):
+        try:
+            if user_id:
+                # List cards owned by a specific user
+                self.cursor.execute("SELECT * FROM Pokemon_cards WHERE owner_id = ?", (user_id,))
+            else:
+                # List all cards
+                self.cursor.execute("SELECT * FROM Pokemon_cards")
+            return self.cursor.fetchall()
+        except sqlite3.Error as e:
+            print(f"Error listing cards: {e}")
+            return []
+
+    def get_balance(self, user_id):
+        try:
+            self.cursor.execute("SELECT usd_balance FROM Users WHERE ID = ?", (user_id,))
+            return self.cursor.fetchone()[0]
+        except sqlite3.Error as e:
+            print(f"Error fetching balance: {e}")
+            return None
 
     def close(self):
         self.connection.close()
