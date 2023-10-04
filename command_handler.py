@@ -12,6 +12,10 @@ class CommandHandler:
 
     def handle_buy(self, args):
         # Extract the necessary arguments
+
+        if len(args) != 6:
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 6 args.")
+
         pokemon_name, card_type, rarity, price_per_card, count, owner_id = args
         price_per_card = float(price_per_card)
         count = int(count)
@@ -28,6 +32,8 @@ class CommandHandler:
 
     def handle_sell(self, args):
         # Extract the necessary arguments
+        if len(args) != 4:
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 4 args.")
         pokemon_name, quantity, card_price, owner_id = args
         quantity = int(quantity)
         card_price = float(card_price)
@@ -43,6 +49,8 @@ class CommandHandler:
             return generate_error_message('DATABASE_ERROR')
 
     def handle_list(self, args):
+        if len(args) != 1:
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg.")
         # Extract the owner_id
         owner_id = int(args[0])
         cards = self.db_manager.list_cards(owner_id)
@@ -55,6 +63,8 @@ class CommandHandler:
                                f'The list of records in the Pokémon cards table for current user, user {owner_id}:\n{formatted_cards}')
 
     def handle_balance(self, args):
+        if len(args) != 1:
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg.")
         # Extract the owner_id
         owner_id = int(args[0])
         balance = self.db_manager.get_balance(owner_id)

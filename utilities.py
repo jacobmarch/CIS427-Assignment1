@@ -26,7 +26,7 @@ def generate_error_message(error_type):
     """
     error_messages = {
         'INVALID_COMMAND': 'The provided command is not recognized.',
-        'MISSING_ARGUMENTS': 'Missing required arguments for the command.',
+        'MISSING_ARGUMENTS': 'Either too many or too few arguments were entered.',
         'DATABASE_ERROR': 'An error occurred while processing the database.',
         # ... add more error types as needed
     }
