@@ -29,6 +29,7 @@ class Client:
 
             # Exit condition for interactive mode
             if command.upper() == CMD_QUIT:
+                self.client_socket.sendall(command.encode('utf-8'))
                 print("Disconnecting from server...")
                 break
 
@@ -38,9 +39,10 @@ class Client:
             # 3. Try to receive the response from the server
             try:
                 response = self.client_socket.recv(1024).decode('utf-8')
+
                 # 4. Check for error messages
-                if response.startswith("ERROR:"):
-                    print("Server Error:", response[6:])
+                if response.startswith("ERROR:") or response == "An unknown error occurred.":
+                    print("Server Error: 403 ERROR: Invalid Command")
                 else:
                     print("Server:", response)
                     if response == "200 OK: Server shutting down...":

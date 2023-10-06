@@ -88,7 +88,7 @@ class Server:
                     client_socket.send(response.encode('utf-8'))
                 else:
                     # Unknown command handling
-                    response = "Unknown command."
+                    response = "400 ERROR: Unknown command."
                     client_socket.send(response.encode('utf-8'))
             db_manager.close()
         except Exception as e:

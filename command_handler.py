@@ -27,10 +27,10 @@ class CommandHandler:
             return generate_error_message('INVALID_ARGUMENTS' + " Check your data types.")
 
         # Perform the buy operation
-        success = self.db_manager.buy_card(pokemon_name, card_type, rarity, price_per_card, count, owner_id)
+        success, message = self.db_manager.buy_card(pokemon_name, card_type, rarity, price_per_card, count, owner_id)
         if success:
             # Fetch updated user balance after purchase
-            new_balance = self.db_manager.get_balance(owner_id)
+            new_balance, new_message = self.db_manager.get_balance(owner_id)
 
             if new_balance is not None:
                 return format_response('200 OK',
@@ -38,7 +38,7 @@ class CommandHandler:
             else:
                 return generate_error_message('DATABASE_ERROR' + " Error fetching new balance.")
         else:
-            return generate_error_message('DATABASE_ERROR' + " Error executing buy operation.")
+            return message
 
     def handle_sell(self, args):
         # Extract the necessary arguments
@@ -63,7 +63,7 @@ class CommandHandler:
                 else:
                     return generate_error_message('DATABASE_ERROR' + " Error fetching new balance.")
             else:
-                return generate_error_message(f'SELL_ERROR: {message}')
+                return message
         except ValueError:
             return generate_error_message('INVALID_ARGUMENTS' + " Check your data types.")
 

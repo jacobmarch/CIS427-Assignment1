@@ -65,11 +65,7 @@ class DatabaseManager:
             self.cursor.execute("SELECT usd_balance FROM Users WHERE ID = ?", (owner_id,))
             user = self.cursor.fetchone()
             if not user or user[0] < price_per_card * count:
-                print(f"Insufficient funds or user {owner_id} does not exist")
-                return False
-
-            # Check if the card type is valid (if needed, based on your requirements)
-            # ...
+                return False, f"Insufficient funds or user {owner_id} does not exist"
 
             # Deduct price from user's balance
             self.cursor.execute("UPDATE Users SET usd_balance = usd_balance - ? WHERE ID = ?",
@@ -82,13 +78,11 @@ class DatabaseManager:
             """, (pokemon_name, card_type, rarity, count, owner_id))
 
             self.connection.commit()
-            return True
+            return True, None
         except ValueError:
-            print("Invalid input: Check your data types")
-            return False
+            return False, "Invalid input: Check your data types"
         except sqlite3.Error as e:
-            print(f"Error buying card: {e}")
-            return False
+            return False, f"Error buying card: {e}"
 
     def sell_card(self, pokemon_name, quantity, price_per_card, owner_id):
         try:
