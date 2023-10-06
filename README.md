@@ -22,51 +22,50 @@ Below are details on each of the commands, including formatting, examples of a s
 
 The BUY command allows the client to purchase cards existing in the database. Below is an example, where the commmand format is 'BUY card_name price number_of_cards user_id':
 
-client: BUY Pikachu Electric Common 19.99 2 1
-server: Received: Pikachu Electric Common 19.99 2 1
-client: 200 OK 
-BOUGHT: New balance: 2 Pikachu. User USD balance $60.02
+    client: BUY Pikachu Electric Common 19.99 2 1
+    server: Received: Pikachu Electric Common 19.99 2 1
+    client: 200 OK 
+    BOUGHT: New balance: 2 Pikachu. User USD balance $60.02
 
 ### SELL
 SELL allows the client to sell cards that it currently owns. Below is an example where the command format is 'SELL card_name number_of_cards price user_id':
 
-client: SELL Pikachu 1 34.99 1
-server: Received: SELL Pikachu 1 34.99 1
-client: 200 OK 
-SOLD: New balance: 1 Pikachu. User’s balance USD $95.01
+    client: SELL Pikachu 1 34.99 1
+    server: Received: SELL Pikachu 1 34.99 1
+    client: 200 OK 
+    SOLD: New balance: 1 Pikachu. User’s balance USD $95.01
 
 ### LIST
 LIST allows the client to view all the cards it currently owns. Below is an example where the command format is 'LIST user_id':
 
-client: LIST 1
-server: Received: LIST 1
-client: 200 OK
-The list of records in the Pokémon cards table for current user, user 1:
-ID  Card Name    Type    Rarity  Count  OwnerID
-1    Pikachu   Electric  Common    2       1
-2   Charizard   Fire      Rare     1       1
+    client: LIST 1
+    server: Received: LIST 1
+    client: 200 OK
+    The list of records in the Pokémon cards table for current user, user 1:
+    ID  Card Name    Type    Rarity  Count  OwnerID
+    1    Pikachu   Electric  Common    2       1
+    2   Charizard    Fire     Rare     1       1
 
 ### BALANCE
 BALANCE allows the client to view its current balance. Below is an example where the command format is 'BALANCE user_id':
 
-
-client: BALANCE 3
-server: Received: BALANCE 3
-client: 200 OK
-Balance for user Jane Smith: $10.00
+    client: BALANCE 3
+    server: Received: BALANCE 3
+    client: 200 OK
+    Balance for user Jane Smith: $10.00
 
 ### QUIT
 QUIT terminates the client, after recieving the '200 OK' repsonse from the server.
 
-client: QUIT
-client: 200 OK
+    client: QUIT
+    client: 200 OK
 
 ### SHUTDOWN
 SHUTDOWN allows the client to terminate the connection and shut down the server. The server will respond with '200 OK' before it closes a;; sockets and database connection, and terminates.
 
-client: SHUTDOWN
-server: Received: SHUTDOWN
-client: 200 OK
+    client: SHUTDOWN
+    server: Received: SHUTDOWN
+    client: 200 OK
 
 ## Files Used
     client.py - implements the client, initiaties connection with server and sends requests to it
