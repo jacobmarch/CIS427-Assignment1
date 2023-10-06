@@ -122,16 +122,14 @@ class DatabaseManager:
 
     def list_cards(self, user_id=None):
         try:
-            if user_id:
-                # List cards owned by a specific user
-                self.cursor.execute("SELECT * FROM Pokemon_cards WHERE owner_id = ?", (user_id,))
-            else:
-                # List all cards
-                self.cursor.execute("SELECT * FROM Pokemon_cards")
-            return self.cursor.fetchall()
+            # List cards owned by a specific user
+            self.cursor.execute("SELECT * FROM Pokemon_cards WHERE owner_id = ?", (user_id,))
+            result = self.cursor.fetchall()
+            if not result:
+                return None, f"User {user_id} does not have any cards or user {user_id} does not exist"
+            return result, None
         except sqlite3.Error as e:
-            print(f"Error listing cards: {e}")
-            return []
+            return [], f"Error listing cards: {e}"
 
     def get_balance(self, user_id):
         try:

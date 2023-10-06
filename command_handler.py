@@ -73,11 +73,11 @@ class CommandHandler:
 
         # Extract the owner_id
         owner_id = int(args[0])
-        cards = self.db_manager.list_cards(owner_id)
+        cards, message = self.db_manager.list_cards(owner_id)
 
         # Check if the cards list is empty
         if not cards:
-            return format_response('200 OK', f'No Pokémon cards found for user {owner_id}.')
+            return message
 
         # Formatting the cards for a response in a table format
         table_header = f"{'ID':<5}{'Card Name':<15}{'Type':<10}{'Rarity':<10}{'Count':<10}{'OwnerID':<10}"
