@@ -9,11 +9,17 @@ class Client:
 
     def start(self):
         try:
-            self.client_socket.connect(('127.0.0.1', SERVER_PORT))
+            #Establish connection, localhost or 127.0.0.1 for local testing
+            connect_ip = input("Enter IP: ")
+            self.client_socket.settimeout(1.0)
+            self.client_socket.connect((connect_ip, SERVER_PORT))
             print(f"Connection established with server via port {SERVER_PORT}.")
             self.interactive_mode()
-        except Exception as e:
-            print(f"Error establishing connection with server. Error: {e}")
+        except socket.error as e:  # Catching socket-specific errors
+            print("No server to connect to.")
+            print(f"Error: {e}")
+        except Exception as e:  # Catching other possible exceptions
+            print(f"An unexpected error occurred. Error: {e}")
 
     def interactive_mode(self):
         while True:
@@ -32,11 +38,14 @@ class Client:
             # 3. Try to receive the response from the server
             try:
                 response = self.client_socket.recv(1024).decode('utf-8')
-                # 4. Display the server's response to the user
-                print("Server:", response)
-                if response == "200 OK: Server shutting down...":
-                    print("Disconnecting from server...")
-                    break
+                # 4. Check for error messages
+                if response.startswith("ERROR:"):
+                    print("Server Error:", response[6:])
+                else:
+                    print("Server:", response)
+                    if response == "200 OK: Server shutting down...":
+                        print("Disconnecting from server...")
+                        break
             except Exception as e:
                 print("Error receiving response from server:", e)
                 print("You can continue to input commands or exit.")

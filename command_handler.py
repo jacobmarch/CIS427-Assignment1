@@ -1,6 +1,7 @@
 from database_manager import DatabaseManager
 from utilities import format_response, generate_error_message
 from constants import CMD_BUY, CMD_SELL, CMD_LIST, CMD_BALANCE, CMD_QUIT, CMD_SHUTDOWN
+import sqlite3
 
 class CommandHandler:
 
@@ -11,75 +12,105 @@ class CommandHandler:
         self.db_manager = db_manager
 
     def handle_buy(self, args):
-        # Extract the necessary arguments
-
+        # Ensure that the correct number of arguments are provided
         if len(args) != 6:
             return generate_error_message('MISSING_ARGUMENTS' + " This command should have 6 args.")
 
         pokemon_name, card_type, rarity, price_per_card, count, owner_id = args
-        price_per_card = float(price_per_card)
-        count = int(count)
-        owner_id = int(owner_id)
-        total_cost = price_per_card * count
 
-        # Deduct card’s price from the user’s balance and create a new record in the card’s table
-        success = self.db_manager.buy_card(owner_id, pokemon_name, card_type, rarity, price_per_card, count)
+        # Validate and convert data types of arguments
+        try:
+            price_per_card = float(price_per_card)
+            count = int(count)
+            owner_id = int(owner_id)
+        except ValueError:
+            return generate_error_message('INVALID_ARGUMENTS' + " Check your data types.")
+
+        # Perform the buy operation
+        success = self.db_manager.buy_card(pokemon_name, card_type, rarity, price_per_card, count, owner_id)
         if success:
-            return format_response('200 OK',
-                                   f'BOUGHT: New balance: {count} {pokemon_name}. User USD balance ${total_cost - price_per_card * count}')
+            # Fetch updated user balance after purchase
+            new_balance = self.db_manager.get_balance(owner_id)
+
+            if new_balance is not None:
+                return format_response('200 OK',
+                                       f'BOUGHT: New balance: {count} {pokemon_name}. User USD balance ${new_balance}')
+            else:
+                return generate_error_message('DATABASE_ERROR' + " Error fetching new balance.")
         else:
-            return generate_error_message('DATABASE_ERROR')
+            return generate_error_message('DATABASE_ERROR' + " Error executing buy operation.")
 
     def handle_sell(self, args):
         # Extract the necessary arguments
         if len(args) != 4:
             return generate_error_message('MISSING_ARGUMENTS' + " This command should have 4 args.")
-        pokemon_name, quantity, card_price, owner_id = args
-        quantity = int(quantity)
-        card_price = float(card_price)
-        owner_id = int(owner_id)
-        total_earnings = card_price * quantity
 
-        # Add card’s price to the user’s balance and update the card's table
-        success = self.db_manager.sell_card(owner_id, pokemon_name, quantity, total_earnings)
-        if success:
-            return format_response('200 OK',
-                                   f'SOLD: New balance: {quantity} {pokemon_name}. User’s balance USD ${total_earnings + card_price * quantity}')
-        else:
-            return generate_error_message('DATABASE_ERROR')
+        try:
+            pokemon_name, quantity, card_price, owner_id = args
+            quantity = int(quantity)
+            card_price = float(card_price)
+            owner_id = int(owner_id)
+            total_earnings = card_price * quantity
+
+            # Add card’s price to the user’s balance and update the card's table
+            success, message = self.db_manager.sell_card(pokemon_name, quantity, card_price, owner_id)
+            if success:
+                # Fetch the updated user balance after the sale
+                new_balance, bal_message = self.db_manager.get_balance(owner_id)
+                if new_balance is not None:
+                    return format_response('200 OK',
+                                           f'SOLD: New balance: {quantity} {pokemon_name}. User’s balance USD ${new_balance}')
+                else:
+                    return generate_error_message('DATABASE_ERROR' + " Error fetching new balance.")
+            else:
+                return generate_error_message(f'SELL_ERROR: {message}')
+        except ValueError:
+            return generate_error_message('INVALID_ARGUMENTS' + " Check your data types.")
 
     def handle_list(self, args):
         if len(args) != 1:
             return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg.")
+
         # Extract the owner_id
         owner_id = int(args[0])
         cards = self.db_manager.list_cards(owner_id)
 
-        # Formatting the cards for a response
+        # Check if the cards list is empty
+        if not cards:
+            return format_response('200 OK', f'No Pokémon cards found for user {owner_id}.')
+
+        # Formatting the cards for a response in a table format
+        table_header = f"{'ID':<5}{'Card Name':<15}{'Type':<10}{'Rarity':<10}{'Count':<10}{'OwnerID':<10}"
         formatted_cards = "\n".join(
-            [f"ID {card[0]} Card Name {card[1]} Type {card[2]} Rarity {card[3]} Count {card[4]} OwnerID {card[5]}" for
-             card in cards])
+            [f"{card[0]:<5}{card[2]:<15}{card[1]:<10}{card[3]:<10}{card[4]:<10}{card[5]:<10}" for card in cards])
+
         return format_response('200 OK',
-                               f'The list of records in the Pokémon cards table for current user, user {owner_id}:\n{formatted_cards}')
+                               f'The list of records in the Pokémon cards table for user {owner_id}:\n{table_header}\n{formatted_cards}')
 
     def handle_balance(self, args):
         if len(args) != 1:
             return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg.")
+
         # Extract the owner_id
         owner_id = int(args[0])
-        balance = self.db_manager.get_balance(owner_id)
+        balance, message = self.db_manager.get_balance(owner_id)
+
+        # Check if balance is None (user not found or database error)
+        if balance is None:
+            return message
 
         # Fetch user details to display the name (assuming it's available in the database)
         user_details = self.db_manager.get_user_details(owner_id)
-        if user_details:
-            user_name = f"{user_details[2]} {user_details[3]}"  # Assuming first_name is at index 2 and last_name is at index 3
-        else:
-            user_name = "Unknown User"
 
-        if balance is not None:
-            return format_response('200 OK', f'Balance for user {user_name}: ${balance}')
-        else:
-            return generate_error_message('DATABASE_ERROR')
+        # Check if user details exist
+        if user_details is None:
+            return message
+
+        # Extract username from details
+        user_name = f"{user_details[2]} {user_details[3]}"  # Assuming first_name is at index 2 and last_name is at index 3
+
+        # Check and return balance
+        return format_response('200 OK', f'Balance for user {user_name}: ${balance:.2f}')
 
     def handle_shutdown(self, args):
         # This will just send a response. The actual shutdown should be managed at a higher level.
