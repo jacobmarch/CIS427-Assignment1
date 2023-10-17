@@ -1,7 +1,7 @@
 import socket
 import threading
 from command_handler import CommandHandler
-from constants import SERVER_PORT, CMD_QUIT, CMD_SHUTDOWN, CMD_LIST, CMD_BALANCE, CMD_SELL, CMD_BUY
+from constants import SERVER_PORT, CMD_QUIT, CMD_SHUTDOWN, CMD_LIST, CMD_LOOKUP, CMD_BALANCE, CMD_SELL, CMD_BUY
 from database_manager import DatabaseManager
 
 class Server:
@@ -82,6 +82,9 @@ class Server:
                     client_socket.send(response.encode('utf-8'))
                 elif command == CMD_LIST:
                     response = self.command_handler.handle_list(args)
+                    client_socket.send(response.encode('utf-8'))
+                elif command == CMD_LOOKUP:
+                    response = self.command_handler.handle_lookup(args)
                     client_socket.send(response.encode('utf-8'))
                 elif command == CMD_BALANCE:
                     response = self.command_handler.handle_balance(args)

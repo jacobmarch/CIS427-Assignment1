@@ -1,6 +1,6 @@
 from database_manager import DatabaseManager
 from utilities import format_response, generate_error_message
-from constants import CMD_BUY, CMD_SELL, CMD_LIST, CMD_BALANCE, CMD_QUIT, CMD_SHUTDOWN
+from constants import CMD_BUY, CMD_SELL, CMD_LIST, CMD_LOOKUP, CMD_BALANCE, CMD_QUIT, CMD_SHUTDOWN
 import sqlite3
 
 class CommandHandler:
@@ -87,6 +87,26 @@ class CommandHandler:
         return format_response('200 OK',
                                f'The list of records in the Pokémon cards table for user {owner_id}:\n{table_header}\n{formatted_cards}')
 
+    def handle_lookup(self, args):
+        if len(args) != 1:
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg.")
+
+        # Extract the owner_id
+        card_type = args[0]
+        cards, message = self.db_manager.lookup_cards(card_type)
+
+        # Check if the cards list is empty
+        if not cards:
+            return message
+
+        # Formatting the cards for a response in a table format
+        table_header = f"{'ID':<5}{'Card Name':<15}{'Type':<10}{'Rarity':<10}{'Count':<10}{'OwnerID':<10}"
+        formatted_cards = "\n".join(
+            [f"{card[0]:<5}{card[2]:<15}{card[1]:<10}{card[3]:<10}{card[4]:<10}{card[5]:<10}" for card in cards])
+
+        return format_response('200 OK',
+                               f'The list of records in the Pokémon cards table for {card_type} type:\n{table_header}\n{formatted_cards}')
+    
     def handle_balance(self, args):
         if len(args) != 1:
             return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg.")
@@ -128,6 +148,7 @@ class CommandHandler:
             CMD_BUY: self.handle_buy,
             CMD_SELL: self.handle_sell,
             CMD_LIST: self.handle_list,
+            CMD_LOOKUP: self.handle_lookup,
             CMD_BALANCE: self.handle_balance,
             CMD_SHUTDOWN: self.handle_shutdown,
             CMD_QUIT: self.handle_quit
