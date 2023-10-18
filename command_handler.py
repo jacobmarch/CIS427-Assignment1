@@ -91,9 +91,9 @@ class CommandHandler:
         if len(args) != 1:
             return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg.")
 
-        # Extract the owner_id
-        card_type = args[0]
-        cards, message = self.db_manager.lookup_cards(card_type)
+        # Extract the card_name
+        card_name = args[0]
+        cards, message = self.db_manager.lookup_cards(card_name)
 
         # Check if the cards list is empty
         if not cards:
@@ -105,7 +105,7 @@ class CommandHandler:
             [f"{card[0]:<5}{card[2]:<15}{card[1]:<10}{card[3]:<10}{card[4]:<10}{card[5]:<10}" for card in cards])
 
         return format_response('200 OK',
-                               f'The list of records in the Pokémon cards table for {card_type} type:\n{table_header}\n{formatted_cards}')
+                               f'The list of records in the Pokémon cards table for {card_name} :\n{table_header}\n{formatted_cards}')
     
     def handle_balance(self, args):
         if len(args) != 1:

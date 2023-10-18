@@ -131,13 +131,13 @@ class DatabaseManager:
         except sqlite3.Error as e:
             return [], f"Error listing cards: {e}"
         
-    def lookup_cards(self, card_type=None):
+    def lookup_cards(self, card_name=None):
         try:
-            # List cards of a specific type
-            self.cursor.execute("SELECT * FROM Pokemon_cards WHERE card_type = ?", (card_type,))
+            # Search cards by name
+            self.cursor.execute("SELECT * FROM Pokemon_cards WHERE card_name LIKE '%' || ? || '%'", (card_name,))
             result = self.cursor.fetchall()
             if not result:
-                return None, f"There are no cards of {card_type} type, or {card_type} does not exist"
+                return None, f"There are no cards matching or containing {card_name}"
             return result, None
         except sqlite3.Error as e:
             return [], f"Error listing cards: {e}"
