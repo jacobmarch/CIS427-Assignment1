@@ -1,7 +1,7 @@
 import socket
 import threading
 from command_handler import CommandHandler
-from constants import SERVER_PORT, CMD_QUIT, CMD_SHUTDOWN, CMD_LIST, CMD_LOOKUP, CMD_BALANCE, CMD_SELL, CMD_BUY
+from constants import SERVER_PORT, CMD_QUIT, CMD_SHUTDOWN, CMD_LIST, CMD_LOOKUP, CMD_BALANCE, CMD_SELL, CMD_BUY, CMD_LOGIN
 from database_manager import DatabaseManager
 
 class Server:
@@ -57,46 +57,7 @@ class Server:
                 print(f'Client Command: {data}')
                 if not data:
                     break
-
-<<<<<<< HEAD
-            command, *args = data.split()
-            
-            if command == CMD_LOGIN:
-                response = self.command_handler.handle_login(args)
-                client_socket.send(response.encode('utf-8'))
-               
-            elif command == CMD_SHUTDOWN:
-                response = self.command_handler.handle_shutdown(args)
-                client_socket.send(response.encode('utf-8'))
-                self.server_running = False  # Signal the main loop to stop
-                for thread in self.active_clients:
-                    if thread is not threading.current_thread():
-                        thread.join()  # Wait for all client threads to finish
-                self.shutdown()
-                break
-            elif command == CMD_QUIT:
-                response = self.command_handler.handle_quit(args)
-                client_socket.send(response.encode('utf-8'))
-                client_socket.close()
-                break
-            elif command == CMD_BUY:
-                response = self.command_handler.handle_buy(args)
-                client_socket.send(response.encode('utf-8'))
-            elif command == CMD_SELL:
-                response = self.command_handler.handle_sell(args)
-                client_socket.send(response.encode('utf-8'))
-            elif command == CMD_LIST:
-                response = self.command_handler.handle_list(args)
-                client_socket.send(response.encode('utf-8'))
-            elif command == CMD_BALANCE:
-                response = self.command_handler.handle_balance(args)
-                client_socket.send(response.encode('utf-8'))
-            else:
-                # Unknown command handling
-                response = "Unknown command."
-                client_socket.send(response.encode('utf-8'))
-        db_manager.close()
-=======
+                
                 command, *args = data.split()
 
                 if command == CMD_SHUTDOWN:
@@ -128,6 +89,9 @@ class Server:
                 elif command == CMD_BALANCE:
                     response = self.command_handler.handle_balance(args)
                     client_socket.send(response.encode('utf-8'))
+                elif command == CMD_LOGIN:
+                    response == self.command_handler.handle_login(args)
+                    client_socket.send(response.encode('utf-8'))
                 else:
                     # Unknown command handling
                     response = "400 ERROR: Unknown command."
@@ -137,7 +101,6 @@ class Server:
             print(f"Error handling client: {e}")
         finally:
             client_socket.close()
->>>>>>> 6824243ab7a7d242e6947b7f9750578bfb019b75
 
     def shutdown(self):
         self.server_socket.close()

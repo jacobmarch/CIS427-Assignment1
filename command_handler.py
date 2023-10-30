@@ -1,6 +1,6 @@
 from database_manager import DatabaseManager
 from utilities import format_response, generate_error_message
-from constants import CMD_BUY, CMD_SELL, CMD_LIST, CMD_LOOKUP, CMD_BALANCE, CMD_QUIT, CMD_SHUTDOWN
+from constants import CMD_BUY, CMD_SELL, CMD_LIST, CMD_LOOKUP, CMD_BALANCE, CMD_QUIT, CMD_SHUTDOWN, CMD_LOGIN
 import sqlite3
 
 class CommandHandler:
@@ -151,8 +151,8 @@ class CommandHandler:
         user_details = self.db_manager.get_user_details(password)
 
         if user_details:
-            user_name == "johndoe"
-            password == "password"
+            user_name == "JOHNDOE"
+            password == "PASSWORD"
             return format_response('200 OK')
         else:
             return generate_error_message('403 Wrong UserID or Password')
