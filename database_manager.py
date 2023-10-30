@@ -170,6 +170,7 @@ class DatabaseManager:
             self.connection.commit()
         except sqlite3.Error as e:
             print(f"Error inserting default user: {e}")
+    
 
     def close(self):
         self.connection.close()

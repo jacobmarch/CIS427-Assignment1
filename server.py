@@ -47,20 +47,26 @@ class Server:
                 else:
                     print(f"Unexpected error occurred: {e}")
 
+
     def handle_client(self, client_socket):
         try:
             db_manager = DatabaseManager()
             self.command_handler.set_db_manager(db_manager)
+
+                
 
             while True:
                 data = client_socket.recv(1024).decode('utf-8')
                 print(f'Client Command: {data}')
                 if not data:
                     break
-                
+
                 command, *args = data.split()
 
-                if command == CMD_SHUTDOWN:
+                if command == CMD_LOGIN:
+                    response = self.command_handler.handle_login(args)
+                    client_socket.send(response.encode('utf-8'))
+                elif command == CMD_SHUTDOWN:
                     response = self.command_handler.handle_shutdown(args)
                     client_socket.send(response.encode('utf-8'))
                     self.server_running = False  # Signal the main loop to stop
@@ -89,9 +95,9 @@ class Server:
                 elif command == CMD_BALANCE:
                     response = self.command_handler.handle_balance(args)
                     client_socket.send(response.encode('utf-8'))
-                elif command == CMD_LOGIN:
-                    response == self.command_handler.handle_login(args)
-                    client_socket.send(response.encode('utf-8'))
+               # elif command == CMD_LOGIN:
+                    #response = self.command_handler.handle_login(args)
+                    #client_socket.send(response.encode('utf-8'))
                 else:
                     # Unknown command handling
                     response = "400 ERROR: Unknown command."
