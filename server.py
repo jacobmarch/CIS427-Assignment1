@@ -57,8 +57,12 @@ class Server:
                 break
 
             command, *args = data.split()
-
-            if command == CMD_SHUTDOWN:
+            
+            if command == CMD_LOGIN:
+                response = self.command_handler.handle_login(args)
+                client_socket.send(response.encode('utf-8'))
+               
+            elif command == CMD_SHUTDOWN:
                 response = self.command_handler.handle_shutdown(args)
                 client_socket.send(response.encode('utf-8'))
                 self.server_running = False  # Signal the main loop to stop

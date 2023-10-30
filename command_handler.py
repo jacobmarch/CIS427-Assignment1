@@ -90,6 +90,21 @@ class CommandHandler:
     def handle_quit(self, args):
         # This just sends a response. The actual disconnect will be managed by the server's socket handling.
         return format_response('200 OK', 'Goodbye!')
+    
+    def handle_login(self, args): 
+        if len(args) != 2:
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 2 args.")
+        
+        user_name, password = args
+        user_details = self.db_manager.get_user_details(user_name)
+        user_details = self.db_manager.get_user_details(password)
+
+        if user_details:
+            user_name == "johndoe"
+            password == "password"
+            return format_response('200 OK')
+        else:
+            return generate_error_message('403 Wrong UserID or Password')
 
     def handle_command(self, command, args):
         # A central function to delegate command handling
@@ -99,7 +114,8 @@ class CommandHandler:
             CMD_LIST: self.handle_list,
             CMD_BALANCE: self.handle_balance,
             CMD_SHUTDOWN: self.handle_shutdown,
-            CMD_QUIT: self.handle_quit
+            CMD_QUIT: self.handle_quit,
+            CMD_LOGIN: self.handle_login
         }
 
         handler = handlers.get(command)
