@@ -14,6 +14,16 @@ class DatabaseManager:
             print(f"Database error: {e}")
             return None
 
+    def get_password(self, user_name):
+        try:
+            self.cursor.execute("SELECT * FROM Users WHERE user_name = ?", (user_name,))
+            user_details = self.cursor.fetchone()
+            if user_details is None:
+                return None, f"No user found with {user_name}"
+            return user_details[5], user_details[0]
+        except sqlite3.Error as e:
+            return None, f"Error fetching balance: {e}"
+
     def create_users_table(self):
         try:
             self.cursor.execute("""

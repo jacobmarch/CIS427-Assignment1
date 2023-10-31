@@ -146,20 +146,18 @@ class CommandHandler:
         if len(args) != 2:
             return generate_error_message('MISSING_ARGUMENTS' + " This command should have 2 args.")
         
-        client1 = "JOHNDOE JOHNDOE01"
-        client2 = "JANEDOE JANEDOE02"
-        client3 = "JAMES JAMES03"
-        client4 = "SAM SAM03"
-        user_details = args
+        user_name, password = args
+        # This checks to see if any users with the entered username exists, if so it takes the user's ID and password
+        user_password = self.db_manager.get_password(user_name)
         
-        if user_details == client1:
-            return format_response('200 OK')
-        elif user_details == client2:
-            return format_response('200 OK')
-        elif user_details == client3:
-            return format_response('200 OK')
-        elif user_details == client4:
-            return format_response('200 OK')
+        # Check if user details exist
+        if user_password[0] is None:
+            return generate_error_message('403 Wrong UserID or Password')
+        
+        # If the entered password is correct
+        if user_password[0] == password:
+            # user_password[1] is the ID, need to assign it to the client somehow
+            return format_response('200 OK', 'Welcome!')
         else:
             return generate_error_message('403 Wrong UserID or Password')
 

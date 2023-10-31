@@ -95,9 +95,9 @@ class Server:
                 elif command == CMD_BALANCE:
                     response = self.command_handler.handle_balance(args)
                     client_socket.send(response.encode('utf-8'))
-               # elif command == CMD_LOGIN:
-                    #response = self.command_handler.handle_login(args)
-                    #client_socket.send(response.encode('utf-8'))
+                elif command == CMD_LOGIN:
+                    response = self.command_handler.handle_login(args)
+                    client_socket.send(response.encode('utf-8'))
                 else:
                     # Unknown command handling
                     response = "400 ERROR: Unknown command."
