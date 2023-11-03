@@ -29,12 +29,11 @@ class Server:
     def start(self):
         self.setup_database()
         self.server_socket.bind(('0.0.0.0', SERVER_PORT))
-        self.server_socket.listen(1)
+        self.server_socket.listen(4)
         print(f"Server started and listening on port {SERVER_PORT}...")
 
         while self.server_running:
             try:
-
                 client_socket, client_address = self.server_socket.accept()
                 print(f"Client {client_address} connected.")
 
@@ -46,6 +45,16 @@ class Server:
                     print("Server offline.")
                 else:
                     print(f"Unexpected error occurred: {e}")
+
+    def thread_id(args):
+        id_num = args
+        current_user ={}
+        #get current thread
+        current_thread = threading.current_thread()
+
+        #assign user id to the thread
+        current_user[current_thread] = id_num
+        
 
 
     def handle_client(self, client_socket):
@@ -63,18 +72,21 @@ class Server:
 
                 command, *args = data.split()
 
-                if command == CMD_LOGIN:
-                    response = self.command_handler.handle_login(args)
-                    client_socket.send(response.encode('utf-8'))
-                elif command == CMD_SHUTDOWN:
+            if command == CMD_LOGIN:
+
+                response, id = self.command_handler.handle_login(args)
+                client_socket.send(response.encode('utf-8'))
+                self.thread_id(id)
+               
+                if command == CMD_SHUTDOWN:
                     response = self.command_handler.handle_shutdown(args)
                     client_socket.send(response.encode('utf-8'))
                     self.server_running = False  # Signal the main loop to stop
                     for thread in self.active_clients:
                         if thread is not threading.current_thread():
                             thread.join()  # Wait for all client threads to finish
-                    self.shutdown()
-                    break
+                        self.shutdown()
+                        break
                 elif command == CMD_QUIT:
                     response = self.command_handler.handle_quit(args)
                     client_socket.send(response.encode('utf-8'))
@@ -102,6 +114,9 @@ class Server:
                     # Unknown command handling
                     response = "400 ERROR: Unknown command."
                     client_socket.send(response.encode('utf-8'))
+            else:
+                print('You must login to access the database')
+
             db_manager.close()
         except Exception as e:
             print(f"Error handling client: {e}")

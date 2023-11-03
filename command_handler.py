@@ -157,9 +157,10 @@ class CommandHandler:
         # If the entered password is correct
         if user_password[0] == password:
             # user_password[1] is the ID, need to assign it to the client somehow
-            return format_response('200 OK', 'Welcome!')
+            return format_response('200 OK', 'Welcome!'), user_password[0]
         else:
             return generate_error_message('403 Wrong UserID or Password')
+        
 
     def handle_command(self, command, args):
         # A central function to delegate command handling
