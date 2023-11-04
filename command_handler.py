@@ -206,7 +206,8 @@ class CommandHandler:
             CMD_BALANCE: self.handle_balance,
             CMD_SHUTDOWN: self.handle_shutdown,
             CMD_QUIT: self.handle_quit,
-            CMD_LOGIN: self.handle_login
+            CMD_LOGIN: self.handle_login,
+            CMD_DEPOSIT: self.handle_deposit
         }
 
         handler = handlers.get(command)
