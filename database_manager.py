@@ -161,6 +161,15 @@ class DatabaseManager:
             return result[0], None
         except sqlite3.Error as e:
             return None, f"Error fetching balance: {e}"
+        
+    def deposit_to_account(self, deposit_amount, user_id):
+        try:
+            self.cursor.execute("UPDATE Users SET usd_balance = usd_balance + ? WHERE ID = ?",
+                                (deposit_amount, user_id))
+            self.connection.commit()
+            return True, None
+        except sqlite3.Error as e:
+            return False, f"Error depositing funds: {e}"
 
     def count_users(self):
         try:

@@ -1,7 +1,6 @@
 from database_manager import DatabaseManager
 from utilities import format_response, generate_error_message
-from constants import CMD_BUY, CMD_SELL, CMD_LIST, CMD_LOOKUP, CMD_BALANCE, CMD_QUIT, CMD_SHUTDOWN, CMD_LOGIN
-import sqlite3
+from constants import CMD_BUY, CMD_SELL, CMD_LIST, CMD_LOOKUP, CMD_BALANCE, CMD_QUIT, CMD_SHUTDOWN, CMD_LOGIN, CMD_DEPOSIT
 
 class CommandHandler:
 
@@ -160,7 +159,42 @@ class CommandHandler:
             return format_response('200 OK', 'Welcome!'), user_password[0]
         else:
             return generate_error_message('403 Wrong UserID or Password')
+    
+    # currently handles format 'DEPOSIT AMOUNT ID'
+    # currently cannot error handle negative deposit amounts
+    def handle_deposit(self, args):
+        if len(args) != 2:
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 2 args.")
         
+        deposit_amount, user_id = args
+
+        # Fetch user details to display the name (assuming it's available in the database)
+        user_details = self.db_manager.get_user_details(user_id)
+
+        # Check if user details exist
+        if user_details is None:
+            return message
+
+        # Validate and convert data type of argument
+        try:
+            deposit_amount = float(deposit_amount)
+            user_id = int(user_id)
+        except ValueError:
+            return generate_error_message('INVALID_ARGUMENTS' + " Check your data types.")
+
+        # Perform deposit operation
+        success, message = self.db_manager.deposit_to_account(deposit_amount, user_id)
+        if success:
+            # Fetch updated user balance after deposit
+            new_balance, new_message = self.db_manager.get_balance(user_id)
+
+            if new_balance is not None:
+                return format_response('200 OK',
+                                    f'Deposit successful. New User balance ${new_balance:.2f}')
+            else:
+                return generate_error_message('DATABASE_ERROR' + " Error fetching new balance.")
+        else:
+            return message 
 
     def handle_command(self, command, args):
         # A central function to delegate command handling
