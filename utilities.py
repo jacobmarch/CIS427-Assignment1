@@ -18,7 +18,7 @@ def format_response(status, message):
     """
     Format a consistent response message to be sent back to the client.
     """
-    return "{}: {}".format(status, message)
+    return f"{status}: {message}"
 
 def generate_error_message(error_type):
     """
@@ -26,7 +26,7 @@ def generate_error_message(error_type):
     """
     error_messages = {
         'INVALID_COMMAND': 'The provided command is not recognized.',
-        'MISSING_ARGUMENTS': 'Missing required arguments for the command.',
+        'MISSING_ARGUMENTS': 'Either too many or too few arguments were entered.',
         'DATABASE_ERROR': 'An error occurred while processing the database.',
         # ... add more error types as needed
     }
@@ -45,3 +45,4 @@ def serialize_data(data):
 def deserialize_data(data_string):
     """Converts a string format back into a data structure."""
     return json.loads(data_string)
+
