@@ -1,6 +1,7 @@
 from database_manager import DatabaseManager
 from utilities import format_response, generate_error_message
 from constants import CMD_BUY, CMD_SELL, CMD_LIST, CMD_LOOKUP, CMD_BALANCE, CMD_QUIT, CMD_SHUTDOWN, CMD_LOGIN, CMD_DEPOSIT
+import sqlite3
 
 class CommandHandler:
 
