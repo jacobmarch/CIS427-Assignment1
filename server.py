@@ -46,9 +46,9 @@ class Server:
                 else:
                     print(f"Unexpected error occurred: {e}")
 
-    def thread_id(args):
+    def thread_id(self, args):
         id_num = args
-        current_user ={}
+        current_user = {}
         #get current thread
         current_thread = threading.current_thread()
 
@@ -76,7 +76,7 @@ class Server:
                     response, id = self.command_handler.handle_login(args)
                     client_socket.send(response.encode('utf-8'))
                     self.thread_id(id)
-                if command == CMD_SHUTDOWN:
+                elif command == CMD_SHUTDOWN:
                     response = self.command_handler.handle_shutdown(args)
                     client_socket.send(response.encode('utf-8'))
                     self.server_running = False  # Signal the main loop to stop
