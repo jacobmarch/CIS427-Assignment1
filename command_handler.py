@@ -163,9 +163,7 @@ class CommandHandler:
             return format_response('200 OK', 'Welcome!'), user_password[1]
         else:
             return generate_error_message('403 Wrong UserID or Password'), None
-    
-    # currently handles format 'DEPOSIT AMOUNT ID'
-    # currently cannot error handle negative deposit amounts
+
     def handle_deposit(self, args, id):
         if len(args) != 1:
             return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg.")
@@ -178,7 +176,7 @@ class CommandHandler:
 
         # Check if user details exist
         if user_details is None:
-            return "USER DOES NOT EXIST"
+            return "User does not exist."
 
         # Validate and convert data type of argument
         try:
@@ -186,6 +184,10 @@ class CommandHandler:
             user_id = int(user_id)
         except ValueError:
             return generate_error_message('INVALID_ARGUMENTS' + " Check your data types.")
+        
+        # Handle negative deposit values
+        if deposit_amount <= 0:
+            return "Please enter a positive value."
 
         # Perform deposit operation
         success, message = self.db_manager.deposit_to_account(deposit_amount, user_id)
