@@ -14,6 +14,7 @@ class Server:
         self.db_manager = DatabaseManager()
         self.db_manager.create_users_table()
         self.db_manager.create_pokemon_table()
+        self.client_user_map = {}
 
     @staticmethod
     def setup_database():
@@ -29,7 +30,7 @@ class Server:
     def start(self):
         self.setup_database()
         self.server_socket.bind(('0.0.0.0', SERVER_PORT))
-        self.server_socket.listen(4)
+        self.server_socket.listen(10)
         print(f"Server started and listening on port {SERVER_PORT}...")
 
         while self.server_running:
@@ -46,14 +47,8 @@ class Server:
                 else:
                     print(f"Unexpected error occurred: {e}")
 
-    def thread_id(self, args):
-        id_num = args
-        current_user = {}
-        #get current thread
-        current_thread = threading.current_thread()
-
-        #assign user id to the thread
-        current_user[current_thread] = id_num
+    def thread_id(self, client_thread, user_id):
+        self.client_user_map[client_thread] = user_id
         
 
 
@@ -73,9 +68,10 @@ class Server:
                 command, *args = data.split()
 
                 if command == CMD_LOGIN:
-                    response, id = self.command_handler.handle_login(args)
+                    response, user_id = self.command_handler.handle_login(args)
                     client_socket.send(response.encode('utf-8'))
-                    self.thread_id(id)
+                    if response.startswith("200 OK"):
+                        self.thread_id(threading.current_thread(), user_id)
                 elif command == CMD_SHUTDOWN:
                     response = self.command_handler.handle_shutdown(args)
                     client_socket.send(response.encode('utf-8'))

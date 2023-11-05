@@ -144,22 +144,23 @@ class CommandHandler:
     
     def handle_login(self, args): 
         if len(args) != 2:
-            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 2 args.")
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 2 args."), None
         
-        user_name, password = args
+        user_name = args[0]
+        password = args[1]
         # This checks to see if any users with the entered username exists, if so it takes the user's ID and password
         user_password = self.db_manager.get_password(user_name)
         
         # Check if user details exist
-        if user_password[0] is None:
-            return generate_error_message('403 Wrong UserID or Password')
+        if user_password[0] is None or user_password[1] is None:
+            return generate_error_message('403 Wrong UserID or Password'), None
         
         # If the entered password is correct
         if user_password[0] == password:
             # user_password[1] is the ID, need to assign it to the client somehow
             return format_response('200 OK', 'Welcome!'), user_password[1]
         else:
-            return generate_error_message('403 Wrong UserID or Password')
+            return generate_error_message('403 Wrong UserID or Password'), None
     
     # currently handles format 'DEPOSIT AMOUNT ID'
     # currently cannot error handle negative deposit amounts
@@ -174,7 +175,7 @@ class CommandHandler:
 
         # Check if user details exist
         if user_details is None:
-            return message
+            return "USER DOES NOT EXIST"
 
         # Validate and convert data type of argument
         try:
