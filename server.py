@@ -49,15 +49,11 @@ class Server:
 
     def thread_id(self, client_thread, user_id):
         self.client_user_map[client_thread] = user_id
-        
-
 
     def handle_client(self, client_socket):
         try:
             db_manager = DatabaseManager()
             self.command_handler.set_db_manager(db_manager)
-
-                
 
             while True:
                 data = client_socket.recv(1024).decode('utf-8')
@@ -101,12 +97,17 @@ class Server:
                 elif command == CMD_BALANCE:
                     response = self.command_handler.handle_balance(args)
                     client_socket.send(response.encode('utf-8'))
-                elif command == CMD_LOGIN:
-                    response = self.command_handler.handle_login(args)
-                    client_socket.send(response.encode('utf-8'))
                 elif command == CMD_DEPOSIT:
-                    response = self.command_handler.handle_deposit(args)
-                    client_socket.send(response.encode('utf-8'))
+                    current_thread = threading.current_thread()
+                    id = self.client_user_map.get(current_thread)
+                    # Implement deposit command
+                    if id is not None:
+                        response = self.command_handler.handle_deposit(args, id)
+                        client_socket.send(response.encode('utf-8'))
+                    # If user is not logged in
+                    else:
+                        response = "403 ERROR: You must log in to make a deposit."
+                        client_socket.send(response.encode('utf-8'))
                 elif command == CMD_LOGOUT:
                     client_thread = threading.current_thread()
                     if client_thread in self.client_user_map:
@@ -118,12 +119,12 @@ class Server:
                     else:
                         # If no user is logged in on this thread, return an error
                         response = 'You are not logged in'
-
                         client_socket.send(response.encode('utf-8'))
                 else:
                     # Unknown command handling
                     response = "400 ERROR: Unknown command."
                     client_socket.send(response.encode('utf-8'))
+
             else:
                 print('You must login to access the database')
 

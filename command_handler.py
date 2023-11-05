@@ -147,7 +147,7 @@ class CommandHandler:
     def handle_login(self, args): 
         if len(args) != 2:
             return generate_error_message('MISSING_ARGUMENTS' + " This command should have 2 args."), None
-
+        
         user_name = args[0]
         password = args[1]
         # This checks to see if any users with the entered username exists, if so it takes the user's ID and password
@@ -166,11 +166,12 @@ class CommandHandler:
     
     # currently handles format 'DEPOSIT AMOUNT ID'
     # currently cannot error handle negative deposit amounts
-    def handle_deposit(self, args):
-        if len(args) != 2:
-            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 2 args.")
+    def handle_deposit(self, args, id):
+        if len(args) != 1:
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg.")
         
-        deposit_amount, user_id = args
+        deposit_amount = args[0]
+        user_id = id
 
         # Fetch user details to display the name (assuming it's available in the database)
         user_details = self.db_manager.get_user_details(user_id)
