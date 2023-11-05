@@ -1,6 +1,8 @@
+import threading
+
 from database_manager import DatabaseManager
 from utilities import format_response, generate_error_message
-from constants import CMD_BUY, CMD_SELL, CMD_LIST, CMD_LOOKUP, CMD_BALANCE, CMD_QUIT, CMD_SHUTDOWN, CMD_LOGIN, CMD_DEPOSIT
+from constants import CMD_BUY, CMD_SELL, CMD_LIST, CMD_LOOKUP, CMD_BALANCE, CMD_QUIT, CMD_SHUTDOWN, CMD_LOGIN, CMD_DEPOSIT, CMD_LOGOUT
 import sqlite3
 
 class CommandHandler:
@@ -145,7 +147,7 @@ class CommandHandler:
     def handle_login(self, args): 
         if len(args) != 2:
             return generate_error_message('MISSING_ARGUMENTS' + " This command should have 2 args."), None
-        
+
         user_name = args[0]
         password = args[1]
         # This checks to see if any users with the entered username exists, if so it takes the user's ID and password

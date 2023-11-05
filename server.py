@@ -1,7 +1,7 @@
 import socket
 import threading
 from command_handler import CommandHandler
-from constants import SERVER_PORT, CMD_QUIT, CMD_SHUTDOWN, CMD_LIST, CMD_LOOKUP, CMD_BALANCE, CMD_SELL, CMD_BUY, CMD_LOGIN, CMD_DEPOSIT
+from constants import SERVER_PORT, CMD_QUIT, CMD_SHUTDOWN, CMD_LIST, CMD_LOOKUP, CMD_BALANCE, CMD_SELL, CMD_BUY, CMD_LOGIN, CMD_DEPOSIT, CMD_LOGOUT
 from database_manager import DatabaseManager
 
 class Server:
@@ -107,6 +107,19 @@ class Server:
                 elif command == CMD_DEPOSIT:
                     response = self.command_handler.handle_deposit(args)
                     client_socket.send(response.encode('utf-8'))
+                elif command == CMD_LOGOUT:
+                    client_thread = threading.current_thread()
+                    if client_thread in self.client_user_map:
+                        # Log out the user by deleting the mapping
+                        user_id = self.client_user_map[client_thread]
+                        del self.client_user_map[client_thread]
+                        response = '200 OK ' + f'User {user_id} logged out successfully'
+                        client_socket.send(response.encode('utf-8'))
+                    else:
+                        # If no user is logged in on this thread, return an error
+                        response = 'You are not logged in'
+
+                        client_socket.send(response.encode('utf-8'))
                 else:
                     # Unknown command handling
                     response = "400 ERROR: Unknown command."
