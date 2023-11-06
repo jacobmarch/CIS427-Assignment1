@@ -73,14 +73,18 @@ class Server:
                     if response.startswith("200 OK"):
                         self.thread_id(user_id)
                 elif command == CMD_SHUTDOWN:
-                    response = self.command_handler.handle_shutdown(args)
-                    client_socket.send(response.encode('utf-8'))
-                    self.server_running = False  # Signal the main loop to stop
-                    for thread in self.active_clients:
-                        if thread is not threading.current_thread():
-                            thread.join()  # Wait for all client threads to finish
-                        self.shutdown()
-                        break
+                    if user_id == 1:
+                        response = self.command_handler.handle_shutdown(args)
+                        client_socket.send(response.encode('utf-8'))
+                        self.server_running = False  # Signal the main loop to stop
+                        for thread in self.active_clients:
+                            if thread is not threading.current_thread():
+                                thread.join()  # Wait for all client threads to finish
+                            self.shutdown()
+                            break
+                    else:
+                        response = "401 ERROR: INVALID PERMISSION"
+                        client_socket.send(response.encode('utf-8'))
                 elif command == CMD_QUIT:
                     response = self.command_handler.handle_quit(args)
                     client_socket.send(response.encode('utf-8'))
