@@ -100,7 +100,7 @@ class Server:
                     response, _ = self.command_handler.handle_sell(args, user_id)
                     client_socket.sendall(response.encode('utf-8'))
                 elif command == CMD_LIST:
-                    response = self.command_handler.handle_list(args, user_id)
+                    response, _ = self.command_handler.handle_list(args, user_id)
                     client_socket.send(response.encode('utf-8'))
                 elif command == CMD_LOOKUP:
                     response, _ = self.command_handler.handle_lookup(args, user_id)
