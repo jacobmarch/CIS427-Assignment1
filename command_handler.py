@@ -77,6 +77,10 @@ class CommandHandler:
             return generate_error_message('INVALID_ARGUMENTS' + " Check your data types."), None
 
     def handle_list(self, args, user_id):
+        # Check if user is logged in
+        if user_id is None:
+            return generate_error_message('403 ERROR: You must be logged in to perform this action.'), None
+
         if len(args) != 0:
             return generate_error_message('MISSING_ARGUMENTS' + " This command should have 0 args."), None
 
@@ -118,20 +122,22 @@ class CommandHandler:
         return format_response('200 OK',
                                f'The list of records in the Pokémon cards table for {card_name} :\n{table_header}\n{formatted_cards}')
     
-    def handle_balance(self, args):
-        if len(args) != 1:
-            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg.")
+    def handle_balance(self, args, user_id):
+        # Check if user is logged in
+        if user_id is None:
+            return generate_error_message('403 ERROR: You must be logged in to perform this action.')
 
-        # Extract the owner_id
-        owner_id = int(args[0])
-        balance, message = self.db_manager.get_balance(owner_id)
+        if len(args) != 0:
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 0 args.")
+
+        balance, message = self.db_manager.get_balance(user_id)
 
         # Check if balance is None (user not found or database error)
         if balance is None:
             return message
 
         # Fetch user details to display the name (assuming it's available in the database)
-        user_details = self.db_manager.get_user_details(owner_id)
+        user_details = self.db_manager.get_user_details(user_id)
 
         # Check if user details exist
         if user_details is None:
