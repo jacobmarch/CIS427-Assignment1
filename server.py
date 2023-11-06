@@ -10,7 +10,7 @@ class Server:
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.command_handler = CommandHandler()
         self.server_running = True  # Added to control server's main loop
-        self.active_clients = []  # To keep track of active client threads
+        self.active_clients = {}  # To keep track of active client threads
         self.db_manager = DatabaseManager()
         self.db_manager.create_users_table()
         self.db_manager.create_pokemon_table()
@@ -39,8 +39,8 @@ class Server:
                 print(f"Client {client_address} connected.")
 
                 client_thread = threading.Thread(target=self.handle_client, args=(client_socket,))
-                self.active_clients.append(client_thread)  # Add thread to active_clients list
                 client_thread.start()
+                self.active_clients[client_thread] = client_socket  # Add thread to active_clients list
             except OSError as e:
                 if not self.server_running:
                     print("Server offline.")
@@ -75,13 +75,14 @@ class Server:
                 elif command == CMD_SHUTDOWN:
                     if user_id == 1:
                         response = self.command_handler.handle_shutdown(args)
-                        client_socket.send(response.encode('utf-8'))
+                        for thread, shutdown_client_socket in list(self.active_clients.items()):
+                            shutdown_client_socket.sendall(response.encode('utf-8'))
                         self.server_running = False  # Signal the main loop to stop
-                        for thread in self.active_clients:
+                        for thread in self.active_clients.keys():
                             if thread is not threading.current_thread():
                                 thread.join()  # Wait for all client threads to finish
-                            self.shutdown()
-                            break
+                        self.shutdown()
+                        break
                     else:
                         response = "401 ERROR: INVALID PERMISSION"
                         client_socket.send(response.encode('utf-8'))

@@ -23,21 +23,21 @@ class Client:
 
     def interactive_mode(self):
         while True:
-            # 1. Prompt the user for input
-            command = input("Enter command (or 'quit' to disconnect): ")
-            command = command.upper()
-
-            # Exit condition for interactive mode
-            if command.upper() == CMD_QUIT:
-                self.client_socket.sendall(command.encode('utf-8'))
-                print("Disconnecting from server...")
-                break
-
-            # 2. Send the command to the server
-            self.client_socket.sendall(command.encode('utf-8'))
-
-            # 3. Try to receive the response from the server
             try:
+                # 1. Prompt the user for input
+                command = input("Enter command (or 'quit' to disconnect): ")
+                command = command.upper()
+
+                # Exit condition for interactive mode
+                if command == CMD_QUIT:
+                    self.client_socket.sendall(command.encode('utf-8'))
+                    print("Disconnecting from server...")
+                    break
+
+                # 2. Send the command to the server
+                self.client_socket.sendall(command.encode('utf-8'))
+
+                # 3. Try to receive the response from the server
                 response = self.client_socket.recv(1024).decode('utf-8')
 
                 # 4. Check for error messages
@@ -46,11 +46,14 @@ class Client:
                 else:
                     print("Server:", response)
                     if response == "200 OK: Server shutting down...":
-                        print("Disconnecting from server...")
+                        print("Server is shutting down. Disconnecting...")
                         break
+            except socket.error as e:
+                print("Connection to server lost. Exiting:", e)
+                break
             except Exception as e:
-                print("Error receiving response from server:", e)
-                print("You can continue to input commands or exit.")
+                print("An unexpected error occurred:", e)
+                break
 
     def shutdown(self):
         self.client_socket.close()
