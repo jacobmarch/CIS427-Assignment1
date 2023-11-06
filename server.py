@@ -66,7 +66,6 @@ class Server:
 
                 thread_id = threading.get_ident()
                 user_id = self.client_user_map.get(thread_id)
-                
 
                 if command == CMD_LOGIN:
                     response, user_id = self.command_handler.handle_login(args)

@@ -13,6 +13,14 @@ class CommandHandler:
     def set_db_manager(self, db_manager):
         self.db_manager = db_manager
     
+    def get_ip_address(self, user_id, client_user_map):
+        # Provided a user ID find the associated ip address
+        for mapped_user_id in client_user_map.items():
+            if user_id == mapped_user_id:
+                return self.client_socket.getpeername(user_id)
+            else:
+                return None
+    
     def handle_buy(self, args, user_id):
         #Check if user is logged in
         if user_id is None:
@@ -226,11 +234,21 @@ class CommandHandler:
         if len(args) != 0:
             return generate_error_message('MISSING_ARGUMENTS' + " This command should have 0 args.")
 
+        # Execute for root user only
         if user_id == 1:
+            # Retrieve a list of IDs and usernames for active clients
             users, message = self.db_manager.list_who(client_user_map)
-            users_formatted = " ".join([f'{user} add' for user in users])
-            if users is not None:
-                return format_response('200 OK', f'The list of the active users: {users_formatted}')
+            users_info = []
+            
+            # Populate users_info with username and ip address for active clients
+            ids = [row[0] for row in users]
+            for id in ids:
+                ip_address = self.get_ip_address(id, client_user_map)
+                temp = (id ,ip_address)
+                users_info.append(temp)
+
+            if users_info is not None:
+                return format_response('200 OK', f'The list of the active users: {users_info}')
             else:
                 return generate_error_message('DATABASE_ERROR' + " Error fetching active users.")
 
