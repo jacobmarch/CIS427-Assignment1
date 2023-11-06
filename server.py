@@ -89,16 +89,10 @@ class Server:
                         response = "401 ERROR: INVALID PERMISSION"
                         client_socket.send(response.encode('utf-8'))
                 elif command == CMD_QUIT:
-                    thread_id = threading.get_ident()
-                    if thread_id in self.client_user_map:
-                        # Log out the user by deleting the mapping
-                        user_id = self.client_user_map[thread_id]
-                        del self.client_user_map[thread_id]
-                        response = '200 OK ' + f'User {user_id} logged out successfully'
-                        client_socket.send(response.encode('utf-8'))
                     response = self.command_handler.handle_quit(args)
                     client_socket.send(response.encode('utf-8'))
                     client_socket.close()
+                    break
                 elif command == CMD_BUY:
                     response, _ = self.command_handler.handle_buy(args, user_id)
                     client_socket.sendall(response.encode('utf-8'))
