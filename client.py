@@ -26,7 +26,6 @@ class Client:
             try:
                 # 1. Prompt the user for input
                 command = input("Enter command (or 'quit' to disconnect): ")
-                command = command.upper()
 
                 # Exit condition for interactive mode
                 if command == CMD_QUIT:

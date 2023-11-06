@@ -69,12 +69,12 @@ class Server:
                 thread_id = threading.get_ident()
                 user_id = self.client_user_map.get(thread_id)
 
-                if command == CMD_LOGIN:
+                if command.upper() == CMD_LOGIN:
                     response, user_id = self.command_handler.handle_login(args)
                     client_socket.send(response.encode('utf-8'))
                     if response.startswith("200 OK"):
                         self.thread_id(user_id)
-                elif command == CMD_SHUTDOWN:
+                elif command.upper() == CMD_SHUTDOWN:
                     if user_id == 1:
                         response = self.command_handler.handle_shutdown(args)
                         for thread, shutdown_client_socket in list(self.active_clients.items()):
@@ -88,27 +88,27 @@ class Server:
                     else:
                         response = "401 ERROR: INVALID PERMISSION"
                         client_socket.send(response.encode('utf-8'))
-                elif command == CMD_QUIT:
+                elif command.upper() == CMD_QUIT:
                     response = self.command_handler.handle_quit(args)
                     client_socket.send(response.encode('utf-8'))
                     client_socket.close()
                     break
-                elif command == CMD_BUY:
+                elif command.upper() == CMD_BUY:
                     response, _ = self.command_handler.handle_buy(args, user_id)
                     client_socket.sendall(response.encode('utf-8'))
-                elif command == CMD_SELL:
+                elif command.upper() == CMD_SELL:
                     response, _ = self.command_handler.handle_sell(args, user_id)
                     client_socket.sendall(response.encode('utf-8'))
-                elif command == CMD_LIST:
+                elif command.upper() == CMD_LIST:
                     response, _ = self.command_handler.handle_list(args, user_id)
                     client_socket.send(response.encode('utf-8'))
-                elif command == CMD_LOOKUP:
+                elif command.upper() == CMD_LOOKUP:
                     response, _ = self.command_handler.handle_lookup(args, user_id)
                     client_socket.send(response.encode('utf-8'))
-                elif command == CMD_BALANCE:
+                elif command.upper() == CMD_BALANCE:
                     response = self.command_handler.handle_balance(args, user_id)
                     client_socket.send(response.encode('utf-8'))
-                elif command == CMD_DEPOSIT:
+                elif command.upper() == CMD_DEPOSIT:
                     # Implement deposit command
                     if user_id is not None:
                         response = self.command_handler.handle_deposit(args, user_id)
@@ -117,7 +117,7 @@ class Server:
                     else:
                         response = "403 ERROR: You must be logged in to perform this action."
                         client_socket.send(response.encode('utf-8'))
-                elif command == CMD_LOGOUT:
+                elif command.upper() == CMD_LOGOUT:
                     thread_id = threading.get_ident()
                     if thread_id in self.client_user_map:
                         # Log out the user by deleting the mapping
@@ -129,7 +129,7 @@ class Server:
                         # If no user is logged in on this thread, return an error
                         response = 'You are not logged in'
                         client_socket.send(response.encode('utf-8'))
-                elif command == CMD_WHO:
+                elif command.upper() == CMD_WHO:
                     if user_id is not None:
                         response = self.command_handler.handle_who(args, user_id, self.client_user_map, self.client_addresses[client_socket])
                         client_socket.send(response.encode('utf-8'))
