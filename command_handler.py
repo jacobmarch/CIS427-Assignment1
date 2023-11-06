@@ -235,7 +235,7 @@ class CommandHandler:
             # Populate users_info with username and ip address for active clients
             ids = [row[0] for row in users]
             for id in ids:
-                ip_address = client_address
+                ip_address = client_address[0]
                 temp = (id ,ip_address)
                 users_info.append(temp)
 
