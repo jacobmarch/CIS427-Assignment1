@@ -13,116 +13,136 @@ class CommandHandler:
     def set_db_manager(self, db_manager):
         self.db_manager = db_manager
 
-    def handle_buy(self, args):
-        # Ensure that the correct number of arguments are provided
-        if len(args) != 6:
-            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 6 args.")
+    def handle_buy(self, args, user_id):
+        #Check if user is logged in
+        if user_id is None:
+            return generate_error_message('403 ERROR: You must be logged in to perform this action.'), None
 
-        pokemon_name, card_type, rarity, price_per_card, count, owner_id = args
+        # Ensure that the correct number of arguments are provided
+        if len(args) != 5:
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 5 args."), None
+
+        pokemon_name, card_type, rarity, price_per_card, count = args
 
         # Validate and convert data types of arguments
         try:
             price_per_card = float(price_per_card)
             count = int(count)
-            owner_id = int(owner_id)
         except ValueError:
-            return generate_error_message('INVALID_ARGUMENTS' + " Check your data types.")
+            return generate_error_message('INVALID_ARGUMENTS' + " Check your data types."), None
 
         # Perform the buy operation
-        success, message = self.db_manager.buy_card(pokemon_name, card_type, rarity, price_per_card, count, owner_id)
+        success, message = self.db_manager.buy_card(pokemon_name, card_type, rarity, price_per_card, count, user_id)
         if success:
             # Fetch updated user balance after purchase
-            new_balance, new_message = self.db_manager.get_balance(owner_id)
+            new_balance, new_message = self.db_manager.get_balance(user_id)
 
             if new_balance is not None:
                 return format_response('200 OK',
-                                       f'BOUGHT: New balance: {count} {pokemon_name}. User USD balance ${new_balance}')
+                                       f'BOUGHT: New balance: {count} {pokemon_name}. User USD balance ${new_balance}'), None
             else:
-                return generate_error_message('DATABASE_ERROR' + " Error fetching new balance.")
+                return generate_error_message('DATABASE_ERROR' + " Error fetching new balance."), None
         else:
-            return message
+            return message, None
 
-    def handle_sell(self, args):
+    def handle_sell(self, args, user_id):
+
+        # Check if user is logged in
+        if user_id is None:
+            return generate_error_message('403 ERROR: You must be logged in to perform this action.'), None
+
         # Extract the necessary arguments
-        if len(args) != 4:
-            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 4 args.")
+        if len(args) != 3:
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 3 args."), None
 
         try:
-            pokemon_name, quantity, card_price, owner_id = args
+            pokemon_name, quantity, card_price = args
             quantity = int(quantity)
             card_price = float(card_price)
-            owner_id = int(owner_id)
             total_earnings = card_price * quantity
 
             # Add card’s price to the user’s balance and update the card's table
-            success, message = self.db_manager.sell_card(pokemon_name, quantity, card_price, owner_id)
+            success, message = self.db_manager.sell_card(pokemon_name, quantity, card_price, user_id)
             if success:
                 # Fetch the updated user balance after the sale
-                new_balance, bal_message = self.db_manager.get_balance(owner_id)
+                new_balance, bal_message = self.db_manager.get_balance(user_id)
                 if new_balance is not None:
                     return format_response('200 OK',
-                                           f'SOLD: New balance: {quantity} {pokemon_name}. User’s balance USD ${new_balance}')
+                                           f'SOLD: New balance: {quantity} {pokemon_name}. User’s balance USD ${new_balance}'), None
                 else:
-                    return generate_error_message('DATABASE_ERROR' + " Error fetching new balance.")
+                    return generate_error_message('DATABASE_ERROR' + " Error fetching new balance."), None
             else:
-                return message
+                return message, None
         except ValueError:
-            return generate_error_message('INVALID_ARGUMENTS' + " Check your data types.")
+            return generate_error_message('INVALID_ARGUMENTS' + " Check your data types."), None
 
-    def handle_list(self, args):
-        if len(args) != 1:
-            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg.")
+    def handle_list(self, args, user_id):
+        # Check if user is logged in
+        if user_id is None:
+            return generate_error_message('403 ERROR: You must be logged in to perform this action.'), None
 
-        # Extract the owner_id
-        owner_id = int(args[0])
-        cards, message = self.db_manager.list_cards(owner_id)
+        if len(args) != 0:
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 0 args."), None
+
+        cards, message = self.db_manager.list_cards(user_id)
 
         # Check if the cards list is empty
         if not cards:
-            return message
+            if user_id == 1:  # For the root user
+                return generate_error_message('No cards found in the database.'), None
+            else:
+                return generate_error_message(f'No cards found for user with ID {user_id}.'), None
 
         # Formatting the cards for a response in a table format
         table_header = f"{'ID':<5}{'Card Name':<15}{'Type':<10}{'Rarity':<10}{'Count':<10}{'OwnerID':<10}"
         formatted_cards = "\n".join(
             [f"{card[0]:<5}{card[2]:<15}{card[1]:<10}{card[3]:<10}{card[4]:<10}{card[5]:<10}" for card in cards])
 
+        user_label = 'all users' if user_id == 1 else f'user {user_id}'
         return format_response('200 OK',
-                               f'The list of records in the Pokémon cards table for user {owner_id}:\n{table_header}\n{formatted_cards}')
+                               f'The list of records in the Pokémon cards table for {user_label}:\n{table_header}\n{formatted_cards}'), None
 
-    def handle_lookup(self, args):
+    def handle_lookup(self, args, user_id):
+        #Check if user is logged in
+        if user_id is None:
+            return generate_error_message('403 ERROR: You must be logged in to perform this action.'), None
+        
+        # Ensure that the correct number of arguments are provided
         if len(args) != 1:
-            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg.")
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg."), None
 
         # Extract the card_name
         card_name = args[0]
-        cards, message = self.db_manager.lookup_cards(card_name)
+        cards, message = self.db_manager.lookup_cards(card_name, user_id)
 
         # Check if the cards list is empty
         if not cards:
-            return message
+            return message, None
 
         # Formatting the cards for a response in a table format
         table_header = f"{'ID':<5}{'Card Name':<15}{'Type':<10}{'Rarity':<10}{'Count':<10}{'OwnerID':<10}"
-        formatted_cards = "\n".join(
-            [f"{card[0]:<5}{card[2]:<15}{card[1]:<10}{card[3]:<10}{card[4]:<10}{card[5]:<10}" for card in cards])
+        formatted_cards = "\n    ".join(
+            [f"{card[0]:<5}{card[2]:<15}{card[1]:<10}{card[3]:<10}{card[4]:<10}{card[5]:<10}\n" for card in cards])
 
         return format_response('200 OK',
-                               f'The list of records in the Pokémon cards table for {card_name} :\n{table_header}\n{formatted_cards}')
+                               f'\n  Found {len(cards)} match(es)\n\n    {table_header}\n\n    {formatted_cards}'), None
     
-    def handle_balance(self, args):
-        if len(args) != 1:
-            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg.")
+    def handle_balance(self, args, user_id):
+        # Check if user is logged in
+        if user_id is None:
+            return generate_error_message('403 ERROR: You must be logged in to perform this action.')
 
-        # Extract the owner_id
-        owner_id = int(args[0])
-        balance, message = self.db_manager.get_balance(owner_id)
+        if len(args) != 0:
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 0 args.")
+
+        balance, message = self.db_manager.get_balance(user_id)
 
         # Check if balance is None (user not found or database error)
         if balance is None:
             return message
 
         # Fetch user details to display the name (assuming it's available in the database)
-        user_details = self.db_manager.get_user_details(owner_id)
+        user_details = self.db_manager.get_user_details(user_id)
 
         # Check if user details exist
         if user_details is None:
@@ -164,12 +184,11 @@ class CommandHandler:
         else:
             return generate_error_message('403 Wrong UserID or Password'), None
 
-    def handle_deposit(self, args, id):
+    def handle_deposit(self, args, user_id):
         if len(args) != 1:
             return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg.")
         
         deposit_amount = args[0]
-        user_id = id
 
         # Fetch user details to display the name (assuming it's available in the database)
         user_details = self.db_manager.get_user_details(user_id)
