@@ -47,8 +47,9 @@ class Server:
                 else:
                     print(f"Unexpected error occurred: {e}")
 
-    def thread_id(self, client_thread, user_id):
-        self.client_user_map[client_thread] = user_id
+    def thread_id(self, user_id):
+        thread_id = threading.get_ident()
+        self.client_user_map[thread_id] = user_id
 
     def handle_client(self, client_socket):
         try:
@@ -67,7 +68,7 @@ class Server:
                     response, user_id = self.command_handler.handle_login(args)
                     client_socket.send(response.encode('utf-8'))
                     if response.startswith("200 OK"):
-                        self.thread_id(threading.current_thread(), user_id)
+                        self.thread_id(user_id)
                 elif command == CMD_SHUTDOWN:
                     response = self.command_handler.handle_shutdown(args)
                     client_socket.send(response.encode('utf-8'))
@@ -98,8 +99,8 @@ class Server:
                     response = self.command_handler.handle_balance(args)
                     client_socket.send(response.encode('utf-8'))
                 elif command == CMD_DEPOSIT:
-                    current_thread = threading.current_thread()
-                    id = self.client_user_map.get(current_thread)
+                    thread_id = threading.get_ident()
+                    id = self.client_user_map.get(thread_id)
                     # Implement deposit command
                     if id is not None:
                         response = self.command_handler.handle_deposit(args, id)
@@ -109,11 +110,11 @@ class Server:
                         response = "403 ERROR: You must log in to make a deposit."
                         client_socket.send(response.encode('utf-8'))
                 elif command == CMD_LOGOUT:
-                    client_thread = threading.current_thread()
-                    if client_thread in self.client_user_map:
+                    thread_id = threading.get_ident()
+                    if thread_id in self.client_user_map:
                         # Log out the user by deleting the mapping
-                        user_id = self.client_user_map[client_thread]
-                        del self.client_user_map[client_thread]
+                        user_id = self.client_user_map[thread_id]
+                        del self.client_user_map[thread_id]
                         response = '200 OK ' + f'User {user_id} logged out successfully'
                         client_socket.send(response.encode('utf-8'))
                     else:
