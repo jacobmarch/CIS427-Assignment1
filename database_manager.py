@@ -178,6 +178,20 @@ class DatabaseManager:
         except sqlite3.Error as e:
             return False, f"Error depositing funds: {e}"
 
+    def list_who(self, client_user_map):
+        try:
+            user_ids = list(client_user_map.values())
+            # Fetch usernames from the database for users with matching user IDs
+            self.cursor.execute("SELECT first_name FROM Users WHERE ID IN ({})".format(', '.join(map(str, user_ids))))
+            result = self.cursor.fetchall()
+
+            if not result:
+                return None, "No matching users found."
+
+            return result, None
+        except sqlite3.Error as e:
+            return [], f"Error listing users: {e}"
+    
     def count_users(self):
         try:
             self.cursor.execute("SELECT COUNT(*) FROM Users")

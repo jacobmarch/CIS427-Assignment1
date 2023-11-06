@@ -2,7 +2,7 @@ import threading
 
 from database_manager import DatabaseManager
 from utilities import format_response, generate_error_message
-from constants import CMD_BUY, CMD_SELL, CMD_LIST, CMD_LOOKUP, CMD_BALANCE, CMD_QUIT, CMD_SHUTDOWN, CMD_LOGIN, CMD_DEPOSIT, CMD_LOGOUT
+from constants import CMD_BUY, CMD_SELL, CMD_LIST, CMD_LOOKUP, CMD_BALANCE, CMD_QUIT, CMD_SHUTDOWN, CMD_LOGIN, CMD_DEPOSIT, CMD_LOGOUT, CMD_WHO
 import sqlite3
 
 class CommandHandler:
@@ -12,7 +12,7 @@ class CommandHandler:
 
     def set_db_manager(self, db_manager):
         self.db_manager = db_manager
-
+    
     def handle_buy(self, args, user_id):
         #Check if user is logged in
         if user_id is None:
@@ -222,6 +222,21 @@ class CommandHandler:
         else:
             return message 
 
+    def handle_who(self, args, user_id, client_user_map):
+        if len(args) != 0:
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 0 args.")
+
+        if user_id == 1:
+            users, message = self.db_manager.list_who(client_user_map)
+            users_formatted = " ".join([f'{user} add' for user in users])
+            if users is not None:
+                return format_response('200 OK', f'The list of the active users: {users_formatted}')
+            else:
+                return generate_error_message('DATABASE_ERROR' + " Error fetching active users.")
+
+        else:
+            return generate_error_message('INVALID_ARGUMENTS' + '403 Permission Denied')
+
     def handle_command(self, command, args):
         # A central function to delegate command handling
         handlers = {
@@ -233,7 +248,8 @@ class CommandHandler:
             CMD_SHUTDOWN: self.handle_shutdown,
             CMD_QUIT: self.handle_quit,
             CMD_LOGIN: self.handle_login,
-            CMD_DEPOSIT: self.handle_deposit
+            CMD_DEPOSIT: self.handle_deposit,
+            CMD_WHO: self.handle_who
         }
 
         handler = handlers.get(command)
