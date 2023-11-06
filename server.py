@@ -96,7 +96,7 @@ class Server:
                     response = self.command_handler.handle_list(args, user_id)
                     client_socket.send(response.encode('utf-8'))
                 elif command == CMD_LOOKUP:
-                    response = self.command_handler.handle_lookup(args)
+                    response, _ = self.command_handler.handle_lookup(args, user_id)
                     client_socket.send(response.encode('utf-8'))
                 elif command == CMD_BALANCE:
                     response = self.command_handler.handle_balance(args, user_id)

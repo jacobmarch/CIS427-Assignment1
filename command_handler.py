@@ -102,25 +102,30 @@ class CommandHandler:
         return format_response('200 OK',
                                f'The list of records in the Pokémon cards table for {user_label}:\n{table_header}\n{formatted_cards}'), None
 
-    def handle_lookup(self, args):
+    def handle_lookup(self, args, user_id):
+        #Check if user is logged in
+        if user_id is None:
+            return generate_error_message('403 ERROR: You must be logged in to perform this action.'), None
+        
+        # Ensure that the correct number of arguments are provided
         if len(args) != 1:
-            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg.")
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg."), None
 
         # Extract the card_name
         card_name = args[0]
-        cards, message = self.db_manager.lookup_cards(card_name)
+        cards, message = self.db_manager.lookup_cards(card_name, user_id)
 
         # Check if the cards list is empty
         if not cards:
-            return message
+            return message, None
 
         # Formatting the cards for a response in a table format
         table_header = f"{'ID':<5}{'Card Name':<15}{'Type':<10}{'Rarity':<10}{'Count':<10}{'OwnerID':<10}"
-        formatted_cards = "\n".join(
-            [f"{card[0]:<5}{card[2]:<15}{card[1]:<10}{card[3]:<10}{card[4]:<10}{card[5]:<10}" for card in cards])
+        formatted_cards = "\n    ".join(
+            [f"{card[0]:<5}{card[2]:<15}{card[1]:<10}{card[3]:<10}{card[4]:<10}{card[5]:<10}\n" for card in cards])
 
         return format_response('200 OK',
-                               f'The list of records in the Pokémon cards table for {card_name} :\n{table_header}\n{formatted_cards}')
+                               f'\n  Found {len(cards)} match(es)\n\n    {table_header}\n\n    {formatted_cards}'), None
     
     def handle_balance(self, args, user_id):
         # Check if user is logged in

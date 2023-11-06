@@ -148,13 +148,13 @@ class DatabaseManager:
         except sqlite3.Error as e:
             return [], f"Error listing cards: {e}"
         
-    def lookup_cards(self, card_name=None):
+    def lookup_cards(self, card_name=None, user_id=None):
         try:
             # Search cards by name
-            self.cursor.execute("SELECT * FROM Pokemon_cards WHERE card_name LIKE '%' || ? || '%'", (card_name,))
+            self.cursor.execute("SELECT * FROM Pokemon_cards WHERE owner_id = ? AND card_name LIKE '%' || ? || '%'", (user_id, card_name,))
             result = self.cursor.fetchall()
             if not result:
-                return None, f"There are no cards matching or containing {card_name}"
+                return None, f"404 Your search did not match any records"
             return result, None
         except sqlite3.Error as e:
             return [], f"Error listing cards: {e}"
