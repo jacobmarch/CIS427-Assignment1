@@ -12,15 +12,7 @@ class CommandHandler:
 
     def set_db_manager(self, db_manager):
         self.db_manager = db_manager
-    
-    def get_ip_address(self, user_id, client_user_map):
-        # Provided a user ID find the associated ip address
-        for mapped_user_id in client_user_map.items():
-            if user_id == mapped_user_id:
-                return self.client_socket.getpeername(user_id)
-            else:
-                return None
-    
+
     def handle_buy(self, args, user_id):
         #Check if user is logged in
         if user_id is None:
@@ -230,7 +222,7 @@ class CommandHandler:
         else:
             return message 
 
-    def handle_who(self, args, user_id, client_user_map):
+    def handle_who(self, args, user_id, client_user_map, client_address):
         if len(args) != 0:
             return generate_error_message('MISSING_ARGUMENTS' + " This command should have 0 args.")
 
@@ -243,7 +235,7 @@ class CommandHandler:
             # Populate users_info with username and ip address for active clients
             ids = [row[0] for row in users]
             for id in ids:
-                ip_address = self.get_ip_address(id, client_user_map)
+                ip_address = client_address
                 temp = (id ,ip_address)
                 users_info.append(temp)
 

@@ -15,6 +15,7 @@ class Server:
         self.db_manager.create_users_table()
         self.db_manager.create_pokemon_table()
         self.client_user_map = {}
+        self.client_addresses = {}
 
     @staticmethod
     def setup_database():
@@ -37,6 +38,7 @@ class Server:
             try:
                 client_socket, client_address = self.server_socket.accept()
                 print(f"Client {client_address} connected.")
+                self.client_addresses[client_socket] = client_address
 
                 client_thread = threading.Thread(target=self.handle_client, args=(client_socket,))
                 client_thread.start()
@@ -129,7 +131,7 @@ class Server:
                         client_socket.send(response.encode('utf-8'))
                 elif command == CMD_WHO:
                     if user_id is not None:
-                        response = self.command_handler.handle_who(args, user_id, self.client_user_map)
+                        response = self.command_handler.handle_who(args, user_id, self.client_user_map, self.client_addresses[client_socket])
                         client_socket.send(response.encode('utf-8'))
                     else:
                         response = "403 ERROR: You must be logged in as root to perform this action."
