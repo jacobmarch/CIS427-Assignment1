@@ -3,7 +3,7 @@ import sqlite3
 class DatabaseManager:
 
     def __init__(self, db_name="pokemon_cards.db"):
-        self.connection = sqlite3.connect(db_name)
+        self.connection = sqlite3.connect(db_name, check_same_thread=False)
         self.cursor = self.connection.cursor()
 
     def get_user_details(self, user_id):
