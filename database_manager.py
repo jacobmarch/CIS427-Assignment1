@@ -3,7 +3,7 @@ import sqlite3
 class DatabaseManager:
 
     def __init__(self, db_name="pokemon_cards.db"):
-        self.connection = sqlite3.connect(db_name, check_same_thread=False)
+        self.connection = sqlite3.connect(db_name)
         self.cursor = self.connection.cursor()
 
     def get_user_details(self, user_id):
@@ -132,29 +132,22 @@ class DatabaseManager:
 
     def list_cards(self, user_id=None):
         try:
-            if user_id == 1:  # Assuming '1' is the ID for the root user
-                # List all cards if the user is root
-                self.cursor.execute("SELECT * FROM Pokemon_cards")
-            else:
-                # List cards owned by a specific user
-                self.cursor.execute("SELECT * FROM Pokemon_cards WHERE owner_id = ?", (user_id,))
+            # List cards owned by a specific user
+            self.cursor.execute("SELECT * FROM Pokemon_cards WHERE owner_id = ?", (user_id,))
             result = self.cursor.fetchall()
             if not result:
-                if user_id == 1:
-                    return None, "No cards found in the database."
-                else:
-                    return None, f"No cards found for user with ID {user_id}."
+                return None, f"User {user_id} does not have any cards or user {user_id} does not exist"
             return result, None
         except sqlite3.Error as e:
             return [], f"Error listing cards: {e}"
         
-    def lookup_cards(self, card_name=None, user_id=None):
+    def lookup_cards(self, card_name=None):
         try:
             # Search cards by name
-            self.cursor.execute("SELECT * FROM Pokemon_cards WHERE owner_id = ? AND card_name LIKE '%' || ? || '%'", (user_id, card_name,))
+            self.cursor.execute("SELECT * FROM Pokemon_cards WHERE card_name LIKE '%' || ? || '%'", (card_name,))
             result = self.cursor.fetchall()
             if not result:
-                return None, f"404 Your search did not match any records"
+                return None, f"There are no cards matching or containing {card_name}"
             return result, None
         except sqlite3.Error as e:
             return [], f"Error listing cards: {e}"
