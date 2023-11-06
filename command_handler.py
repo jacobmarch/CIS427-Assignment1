@@ -239,8 +239,11 @@ class CommandHandler:
                 temp = (id ,ip_address)
                 users_info.append(temp)
 
+            formatted_users_info = "\n".join(
+            [f"{user[0]:<10}{user[1]}" for user in users_info])
+
             if users_info is not None:
-                return format_response('200 OK', f'The list of the active users: {users_info}')
+                return format_response('200 OK', f'The list of the active users: \n{formatted_users_info}')
             else:
                 return generate_error_message('DATABASE_ERROR' + " Error fetching active users.")
 
