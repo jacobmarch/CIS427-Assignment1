@@ -1,7 +1,7 @@
 import socket
 import threading
 from command_handler import CommandHandler
-from constants import SERVER_PORT, CMD_QUIT, CMD_SHUTDOWN, CMD_LIST, CMD_LOOKUP, CMD_BALANCE, CMD_SELL, CMD_BUY, CMD_LOGIN, CMD_DEPOSIT
+from constants import SERVER_PORT, CMD_QUIT, CMD_SHUTDOWN, CMD_LIST, CMD_LOOKUP, CMD_BALANCE, CMD_SELL, CMD_BUY, CMD_LOGIN, CMD_DEPOSIT, CMD_LOGOUT
 from database_manager import DatabaseManager
 
 class Server:
@@ -14,6 +14,7 @@ class Server:
         self.db_manager = DatabaseManager()
         self.db_manager.create_users_table()
         self.db_manager.create_pokemon_table()
+        self.client_user_map = {}
 
     @staticmethod
     def setup_database():
@@ -29,7 +30,7 @@ class Server:
     def start(self):
         self.setup_database()
         self.server_socket.bind(('0.0.0.0', SERVER_PORT))
-        self.server_socket.listen(4)
+        self.server_socket.listen(10)
         print(f"Server started and listening on port {SERVER_PORT}...")
 
         while self.server_running:
@@ -46,23 +47,14 @@ class Server:
                 else:
                     print(f"Unexpected error occurred: {e}")
 
-    def thread_id(args):
-        id_num = args
-        current_user ={}
-        #get current thread
-        current_thread = threading.current_thread()
-
-        #assign user id to the thread
-        current_user[current_thread] = id_num
-        
-
+    def thread_id(self, user_id):
+        thread_id = threading.get_ident()
+        self.client_user_map[thread_id] = user_id
 
     def handle_client(self, client_socket):
         try:
             db_manager = DatabaseManager()
             self.command_handler.set_db_manager(db_manager)
-
-                
 
             while True:
                 data = client_socket.recv(1024).decode('utf-8')
@@ -73,10 +65,11 @@ class Server:
                 command, *args = data.split()
 
                 if command == CMD_LOGIN:
-                    response, id = self.command_handler.handle_login(args)
+                    response, user_id = self.command_handler.handle_login(args)
                     client_socket.send(response.encode('utf-8'))
-                    self.thread_id(id)
-                if command == CMD_SHUTDOWN:
+                    if response.startswith("200 OK"):
+                        self.thread_id(user_id)
+                elif command == CMD_SHUTDOWN:
                     response = self.command_handler.handle_shutdown(args)
                     client_socket.send(response.encode('utf-8'))
                     self.server_running = False  # Signal the main loop to stop
@@ -105,16 +98,34 @@ class Server:
                 elif command == CMD_BALANCE:
                     response = self.command_handler.handle_balance(args)
                     client_socket.send(response.encode('utf-8'))
-                elif command == CMD_LOGIN:
-                    response = self.command_handler.handle_login(args)
-                    client_socket.send(response.encode('utf-8'))
                 elif command == CMD_DEPOSIT:
-                    response = self.command_handler.handle_deposit(args)
-                    client_socket.send(response.encode('utf-8'))
+                    thread_id = threading.get_ident()
+                    id = self.client_user_map.get(thread_id)
+                    # Implement deposit command
+                    if id is not None:
+                        response = self.command_handler.handle_deposit(args, id)
+                        client_socket.send(response.encode('utf-8'))
+                    # If user is not logged in
+                    else:
+                        response = "403 ERROR: You must log in to make a deposit."
+                        client_socket.send(response.encode('utf-8'))
+                elif command == CMD_LOGOUT:
+                    thread_id = threading.get_ident()
+                    if thread_id in self.client_user_map:
+                        # Log out the user by deleting the mapping
+                        user_id = self.client_user_map[thread_id]
+                        del self.client_user_map[thread_id]
+                        response = '200 OK ' + f'User {user_id} logged out successfully'
+                        client_socket.send(response.encode('utf-8'))
+                    else:
+                        # If no user is logged in on this thread, return an error
+                        response = 'You are not logged in'
+                        client_socket.send(response.encode('utf-8'))
                 else:
                     # Unknown command handling
                     response = "400 ERROR: Unknown command."
                     client_socket.send(response.encode('utf-8'))
+
             else:
                 print('You must login to access the database')
 
