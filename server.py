@@ -91,7 +91,7 @@ class Server:
                     client_socket.sendall(response.encode('utf-8'))
                 elif command == CMD_SELL:
                     response, _ = self.command_handler.handle_sell(args, user_id)
-                    client_socket.send(response.encode('utf-8'))
+                    client_socket.sendall(response.encode('utf-8'))
                 elif command == CMD_LIST:
                     response = self.command_handler.handle_list(args, user_id)
                     client_socket.send(response.encode('utf-8'))

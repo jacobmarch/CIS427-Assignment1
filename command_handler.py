@@ -45,32 +45,36 @@ class CommandHandler:
         else:
             return message, None
 
-    def handle_sell(self, args):
+    def handle_sell(self, args, user_id):
+
+        # Check if user is logged in
+        if user_id is None:
+            return generate_error_message('403 ERROR: You must be logged in to perform this action.'), None
+
         # Extract the necessary arguments
-        if len(args) != 4:
-            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 4 args.")
+        if len(args) != 3:
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 3 args."), None
 
         try:
-            pokemon_name, quantity, card_price, owner_id = args
+            pokemon_name, quantity, card_price = args
             quantity = int(quantity)
             card_price = float(card_price)
-            owner_id = int(owner_id)
             total_earnings = card_price * quantity
 
             # Add card’s price to the user’s balance and update the card's table
-            success, message = self.db_manager.sell_card(pokemon_name, quantity, card_price, owner_id)
+            success, message = self.db_manager.sell_card(pokemon_name, quantity, card_price, user_id)
             if success:
                 # Fetch the updated user balance after the sale
-                new_balance, bal_message = self.db_manager.get_balance(owner_id)
+                new_balance, bal_message = self.db_manager.get_balance(user_id)
                 if new_balance is not None:
                     return format_response('200 OK',
-                                           f'SOLD: New balance: {quantity} {pokemon_name}. User’s balance USD ${new_balance}')
+                                           f'SOLD: New balance: {quantity} {pokemon_name}. User’s balance USD ${new_balance}'), None
                 else:
-                    return generate_error_message('DATABASE_ERROR' + " Error fetching new balance.")
+                    return generate_error_message('DATABASE_ERROR' + " Error fetching new balance."), None
             else:
-                return message
+                return message, None
         except ValueError:
-            return generate_error_message('INVALID_ARGUMENTS' + " Check your data types.")
+            return generate_error_message('INVALID_ARGUMENTS' + " Check your data types."), None
 
     def handle_list(self, args, user_id):
         if len(args) != 0:
