@@ -56,6 +56,9 @@ class Server:
             db_manager = DatabaseManager()
             self.command_handler.set_db_manager(db_manager)
 
+            thread_id = threading.get_ident()
+            user_id = self.client_user_map.get(thread_id)
+
             while True:
                 data = client_socket.recv(1024).decode('utf-8')
                 print(f'Client Command: {data}')
@@ -90,7 +93,7 @@ class Server:
                     response = self.command_handler.handle_sell(args)
                     client_socket.send(response.encode('utf-8'))
                 elif command == CMD_LIST:
-                    response = self.command_handler.handle_list(args)
+                    response, _ = self.command_handler.handle_list(args, user_id)
                     client_socket.send(response.encode('utf-8'))
                 elif command == CMD_LOOKUP:
                     response = self.command_handler.handle_lookup(args)
@@ -99,11 +102,9 @@ class Server:
                     response = self.command_handler.handle_balance(args)
                     client_socket.send(response.encode('utf-8'))
                 elif command == CMD_DEPOSIT:
-                    thread_id = threading.get_ident()
-                    id = self.client_user_map.get(thread_id)
                     # Implement deposit command
-                    if id is not None:
-                        response = self.command_handler.handle_deposit(args, id)
+                    if user_id is not None:
+                        response = self.command_handler.handle_deposit(args, user_id)
                         client_socket.send(response.encode('utf-8'))
                     # If user is not logged in
                     else:

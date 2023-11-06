@@ -69,25 +69,27 @@ class CommandHandler:
         except ValueError:
             return generate_error_message('INVALID_ARGUMENTS' + " Check your data types.")
 
-    def handle_list(self, args):
-        if len(args) != 1:
-            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg.")
+    def handle_list(self, args, user_id):
+        if len(args) != 0:
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 0 args."), None
 
-        # Extract the owner_id
-        owner_id = int(args[0])
-        cards, message = self.db_manager.list_cards(owner_id)
+        cards, message = self.db_manager.list_cards(user_id)
 
         # Check if the cards list is empty
         if not cards:
-            return message
+            if user_id == 1:  # For the root user
+                return generate_error_message('No cards found in the database.'), None
+            else:
+                return generate_error_message(f'No cards found for user with ID {user_id}.'), None
 
         # Formatting the cards for a response in a table format
         table_header = f"{'ID':<5}{'Card Name':<15}{'Type':<10}{'Rarity':<10}{'Count':<10}{'OwnerID':<10}"
         formatted_cards = "\n".join(
             [f"{card[0]:<5}{card[2]:<15}{card[1]:<10}{card[3]:<10}{card[4]:<10}{card[5]:<10}" for card in cards])
 
+        user_label = 'all users' if user_id == 1 else f'user {user_id}'
         return format_response('200 OK',
-                               f'The list of records in the Pokémon cards table for user {owner_id}:\n{table_header}\n{formatted_cards}')
+                               f'The list of records in the Pokémon cards table for {user_label}:\n{table_header}\n{formatted_cards}'), None
 
     def handle_lookup(self, args):
         if len(args) != 1:
