@@ -56,9 +56,6 @@ class Server:
             db_manager = DatabaseManager()
             self.command_handler.set_db_manager(db_manager)
 
-            thread_id = threading.get_ident()
-            user_id = self.client_user_map.get(thread_id)
-
             while True:
                 data = client_socket.recv(1024).decode('utf-8')
                 print(f'Client Command: {data}')
@@ -66,6 +63,9 @@ class Server:
                     break
 
                 command, *args = data.split()
+
+                thread_id = threading.get_ident()
+                user_id = self.client_user_map.get(thread_id)
 
                 if command == CMD_LOGIN:
                     response, user_id = self.command_handler.handle_login(args)
@@ -87,13 +87,13 @@ class Server:
                     client_socket.close()
                     break
                 elif command == CMD_BUY:
-                    response = self.command_handler.handle_buy(args)
-                    client_socket.send(response.encode('utf-8'))
+                    response, _ = self.command_handler.handle_buy(args, user_id)
+                    client_socket.sendall(response.encode('utf-8'))
                 elif command == CMD_SELL:
-                    response = self.command_handler.handle_sell(args)
+                    response, _ = self.command_handler.handle_sell(args, user_id)
                     client_socket.send(response.encode('utf-8'))
                 elif command == CMD_LIST:
-                    response, _ = self.command_handler.handle_list(args, user_id)
+                    response = self.command_handler.handle_list(args, user_id)
                     client_socket.send(response.encode('utf-8'))
                 elif command == CMD_LOOKUP:
                     response = self.command_handler.handle_lookup(args)

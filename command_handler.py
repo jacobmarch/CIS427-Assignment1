@@ -13,34 +13,37 @@ class CommandHandler:
     def set_db_manager(self, db_manager):
         self.db_manager = db_manager
 
-    def handle_buy(self, args):
-        # Ensure that the correct number of arguments are provided
-        if len(args) != 6:
-            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 6 args.")
+    def handle_buy(self, args, user_id):
+        #Check if user is logged in
+        if user_id is None:
+            return generate_error_message('403 ERROR: You must be logged in to perform this action.'), None
 
-        pokemon_name, card_type, rarity, price_per_card, count, owner_id = args
+        # Ensure that the correct number of arguments are provided
+        if len(args) != 5:
+            return generate_error_message('MISSING_ARGUMENTS' + " This command should have 5 args."), None
+
+        pokemon_name, card_type, rarity, price_per_card, count = args
 
         # Validate and convert data types of arguments
         try:
             price_per_card = float(price_per_card)
             count = int(count)
-            owner_id = int(owner_id)
         except ValueError:
-            return generate_error_message('INVALID_ARGUMENTS' + " Check your data types.")
+            return generate_error_message('INVALID_ARGUMENTS' + " Check your data types."), None
 
         # Perform the buy operation
-        success, message = self.db_manager.buy_card(pokemon_name, card_type, rarity, price_per_card, count, owner_id)
+        success, message = self.db_manager.buy_card(pokemon_name, card_type, rarity, price_per_card, count, user_id)
         if success:
             # Fetch updated user balance after purchase
-            new_balance, new_message = self.db_manager.get_balance(owner_id)
+            new_balance, new_message = self.db_manager.get_balance(user_id)
 
             if new_balance is not None:
                 return format_response('200 OK',
-                                       f'BOUGHT: New balance: {count} {pokemon_name}. User USD balance ${new_balance}')
+                                       f'BOUGHT: New balance: {count} {pokemon_name}. User USD balance ${new_balance}'), None
             else:
-                return generate_error_message('DATABASE_ERROR' + " Error fetching new balance.")
+                return generate_error_message('DATABASE_ERROR' + " Error fetching new balance."), None
         else:
-            return message
+            return message, None
 
     def handle_sell(self, args):
         # Extract the necessary arguments
