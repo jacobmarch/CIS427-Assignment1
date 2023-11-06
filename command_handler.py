@@ -179,12 +179,11 @@ class CommandHandler:
         else:
             return generate_error_message('403 Wrong UserID or Password'), None
 
-    def handle_deposit(self, args, id):
+    def handle_deposit(self, args, user_id):
         if len(args) != 1:
             return generate_error_message('MISSING_ARGUMENTS' + " This command should have 1 arg.")
         
         deposit_amount = args[0]
-        user_id = id
 
         # Fetch user details to display the name (assuming it's available in the database)
         user_details = self.db_manager.get_user_details(user_id)
