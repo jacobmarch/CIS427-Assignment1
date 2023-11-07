@@ -16,6 +16,7 @@ class Client:
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_response_listener = threading.Thread(target=self.listen_for_server_responses)
         self.running = True
+        self.display_event_prompt = threading.Event()
 
     def listen_for_server_responses(self):
         while self.running:
@@ -26,7 +27,10 @@ class Client:
                     self.stop()
                     break
 
+                clear_current_line()
                 print("\nServer:", response)
+
+                self.display_event_prompt.set()
                 # Check for the server's shutdown message
                 if response.startswith("200 OK: Server shutting down"):
                     print("\nServer is shutting down. Disconnecting...")
@@ -70,6 +74,8 @@ class Client:
 
     def interactive_mode(self):
         while self.running:
+            self.display_event_prompt.wait()
+            self.display_event_prompt.clear()
             command = input("Enter command (or 'quit' to disconnect): ")
             if not self.running:
                 # If the server has shutdown, exit the loop immediately
@@ -85,10 +91,10 @@ class Client:
         except socket.error as e:
             print("Error sending command:", e)
             self.stop()
-
     def shutdown(self):
         self.client_socket.close()
 
 if __name__ == "__main__":
     client = Client()
+    client.display_event_prompt.set()
     client.start()
