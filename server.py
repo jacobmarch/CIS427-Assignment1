@@ -146,6 +146,11 @@ class Server:
                 print('You must login to access the database')
 
             db_manager.close()
+        except socket.error as e:
+            if isinstance(e, ConnectionResetError) and e.winerror == 10054:
+                pass
+            else:
+                print(f"Error handling client: {e}")
         except Exception as e:
             print(f"Error handling client: {e}")
         finally:
