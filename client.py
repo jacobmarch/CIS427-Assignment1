@@ -28,7 +28,7 @@ class Client:
                 command = input("Enter command (or 'quit' to disconnect): ")
 
                 # Exit condition for interactive mode
-                if command == CMD_QUIT:
+                if command.upper() == CMD_QUIT:
                     self.client_socket.sendall(command.encode('utf-8'))
                     print("Disconnecting from server...")
                     break
