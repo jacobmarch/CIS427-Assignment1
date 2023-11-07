@@ -1,5 +1,7 @@
 import socket
 import threading
+import time
+
 from constants import SERVER_PORT, CMD_QUIT, CMD_SHUTDOWN
 
 
@@ -17,6 +19,7 @@ class Client:
         self.server_response_listener = threading.Thread(target=self.listen_for_server_responses)
         self.running = True
         self.display_event_prompt = threading.Event()
+        self.server_shutdown = False
 
     def listen_for_server_responses(self):
         while self.running:
@@ -28,12 +31,13 @@ class Client:
                     break
 
                 clear_current_line()
-                print("\nServer:", response)
+                print("Server:", response)
 
                 self.display_event_prompt.set()
                 # Check for the server's shutdown message
                 if response.startswith("200 OK: Server shutting down"):
                     print("\nServer is shutting down. Disconnecting...")
+                    self.server_shutdown = True
                     self.stop()
                     break
 
@@ -80,10 +84,16 @@ class Client:
             if not self.running:
                 # If the server has shutdown, exit the loop immediately
                 break
-            if command.lower() == 'quit' or command.lower() == 'shutdown':
+            if command.lower() == 'quit':
                 self.send_command(command)
                 break
-            self.send_command(command)
+            elif command.lower() == 'shutdown':
+                self.send_command(command)
+                time.sleep(0.2)
+                if self.server_shutdown:
+                    break
+            else:
+                self.send_command(command)
 
     def send_command(self, command):
         try:
