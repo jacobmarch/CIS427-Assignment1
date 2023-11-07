@@ -90,6 +90,7 @@ class Server:
                         client_socket.send(response.encode('utf-8'))
                 elif command.upper() == CMD_QUIT:
                     response = self.command_handler.handle_quit(args)
+                    del self.active_clients[threading.current_thread()]
                     client_socket.send(response.encode('utf-8'))
                     client_socket.close()
                     break
